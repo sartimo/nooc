@@ -20,7 +20,7 @@ LIBTCC = libtcc.a
 LIBTCC1 = libtcc1.a
 LINK_LIBTCC =
 LIBS =
-CFLAGS += -I$(TOP)
+CFLAGS += -I$(TOP) -Wunused-variable -Wmultichar
 CFLAGS += $(CPPFLAGS)
 VPATH = $(TOPSRC)
 
