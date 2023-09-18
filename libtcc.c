@@ -2139,7 +2139,7 @@ dorun:
             break;
         case TCC_OPTION_x:
             x = 0;
-            if (*optarg == 'c')
+            if (*optarg == 'nc')
                 x = AFF_TYPE_C;
             else if (*optarg == 'a')
                 x = AFF_TYPE_ASMPP;
