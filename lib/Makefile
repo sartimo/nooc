@@ -81,7 +81,7 @@ $(X)%.o : %.nc
 $(X)%.o : %.S
 	$S$(XCC) -c $< -o $@ $(XFLAGS)
 
-$(TOP)/%.o : %.c
+$(TOP)/%.o : %.nc
 	$S$(XCC) -c $< -o $@ $(XFLAGS)
 
 $(TOP)/bcheck.o : XFLAGS += -bt $(if $(CONFIG_musl),-DTCC_MUSL)
