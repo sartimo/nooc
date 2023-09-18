@@ -75,7 +75,7 @@ all: $(ALL)
 $(TOP)/$(X)libtcc1.a : $(OBJ-libtcc1)
 	$S$(XAR) rcs $@ $^
 
-$(X)%.o : %.c
+$(X)%.o : %.nc
 	$S$(XCC) -c $< -o $@ $(XFLAGS)
 
 $(X)%.o : %.S
