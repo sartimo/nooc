@@ -83,11 +83,11 @@ GEN-ALWAYS =
 
 # this test compiles/links two files:
 104_inline.test : FLAGS += $(subst 104,104+,$1)
-104_inline.test : GEN = $(GEN-TCC)
+104_inline.test : GEN = $(GEN-NOOC)
 
 # this test needs two files, and we want to invoke the linker
 120_alias.test : FLAGS += $(subst 120,120+,$1)
-120_alias.test : GEN = $(GEN-TCC)
+120_alias.test : GEN = $(GEN-NOOC)
 120_alias.test : NORUN = true
 
 # this test needs pthread
@@ -104,16 +104,16 @@ GEN-ALWAYS =
 
 # this test creates two DLLs and an EXE
 113_btdll.test: T1 = \
-    $(TCC) -bt $1 -shared -D DLL=1 -o a1$(DLLSUF) && \
-    $(TCC) -bt $1 -shared -D DLL=2 -o a2$(DLLSUF) && \
-    $(TCC) -bt $1 a1$(DLLSUF) a2$(DLLSUF) -Wl,-rpath=. -o $(basename $@).exe && \
+    $(NOOC) -bt $1 -shared -D DLL=1 -o a1$(DLLSUF) && \
+    $(NOOC) -bt $1 -shared -D DLL=2 -o a2$(DLLSUF) && \
+    $(NOOC) -bt $1 a1$(DLLSUF) a2$(DLLSUF) -Wl,-rpath=. -o $(basename $@).exe && \
     ./$(basename $@).exe
 
 114_bound_signal.test: FLAGS += -b
-114_bound_signal.test: NORUN = true # tcc -run does not support fork and -b and SELINUX
+114_bound_signal.test: NORUN = true # nooc -run does not support fork and -b and SELINUX
 115_bound_setjmp.test: FLAGS += -b
 116_bound_setjmp2.test: FLAGS += -b
-117_builtins.test: T1 = ( $(TCC) -run $1 && $(TCC) -b -run $1 )
+117_builtins.test: T1 = ( $(NOOC) -run $1 && $(NOOC) -b -run $1 )
 ifneq ($(CONFIG_bcheck),no)
 121_struct_return.test: FLAGS += -b
 122_vla_reuse.test: FLAGS += -b
@@ -135,7 +135,7 @@ all test tests2.all: $(filter-out $(SKIP),$(TESTS))
 	@echo Test: $*...
 	@$(call T1,$<) $(T3)
 
-T1 = $(TCC) $(FLAGS) $(T2) $(ARGS)
+T1 = $(NOOC) $(FLAGS) $(T2) $(ARGS)
 T2 = $(if $(NORUN),$1 -o $(basename $@).exe && ./$(basename $@).exe,-run $1)
 T3 = $(FILTER) >$*.output 2>&1 || true \
      && diff -Nbu $(filter %.expect,$^) $*.output \
@@ -145,7 +145,7 @@ T3 = $(FILTER) >$*.output 2>&1 || true \
 tests2.%+:
 	@$(MAKE) $(call F2,$(call F1,$*)) --no-print-directory
 
-# just run tcc to see the output, e.g. "make tests2.37-"
+# just run nooc to see the output, e.g. "make tests2.37-"
 tests2.%-:
 	@$(MAKE) $(call F1,$*) T3= --no-print-directory
 
@@ -162,10 +162,10 @@ F2 = $1 UPDATE="$(patsubst %.test,%.expect,$1)"
 	@$(call GEN,$(SRC)/$*.c) $(FILTER) >$@ 2>&1
 	@rm -f *.exe *.obj *.pdb
 
-# using TCC for .expect if -dt in FLAGS
-GEN = $(if $(filter -dt -bt -b,$(FLAGS)),$(GEN-TCC),$(GEN-CC))
+# using NOOC for .expect if -dt in FLAGS
+GEN = $(if $(filter -dt -bt -b,$(FLAGS)),$(GEN-NOOC),$(GEN-CC))
 GEN-CC = $(CC) -w -std=gnu99 $(FLAGS) $1 -o $(basename $@).exe && ./$(basename $@).exe $(ARGS)
-GEN-TCC = $(T1)
+GEN-NOOC = $(T1)
 GEN-MSC = $(MS-CC) $1 && ./$(basename $@).exe
 MS-CC = cl
 

@@ -1,5 +1,5 @@
 /*
- *  A64 code generator for TCC
+ *  A64 code generator for NOOC
  *
  *  Copyright (c) 2014-2015 Edmund Grimley Evans
  *
@@ -38,22 +38,22 @@
 
 #define MAX_ALIGN 16
 
-#ifndef TCC_TARGET_MACHO
+#ifndef NOOC_TARGET_MACHO
 #define CHAR_IS_UNSIGNED
 #endif
 
 /* define if return values need to be extended explicitely
-   at caller side (for interfacing with non-TCC compilers) */
+   at caller side (for interfacing with non-NOOC compilers) */
 #define PROMOTE_RET
 /******************************************************/
 #else /* ! TARGET_DEFS_ONLY */
 /******************************************************/
 #define USING_GLOBALS
-#include "tcc.h"
+#include "nooc.h"
 #include <assert.h>
 
 ST_DATA const char * const target_machine_defs =
-#if defined(TCC_TARGET_MACHO)
+#if defined(NOOC_TARGET_MACHO)
     "__aarch64__\0"
     "__arm64__\0"
 #else
@@ -92,7 +92,7 @@ ST_DATA const int reg_classes[NB_REGS] = {
   RC_FLOAT | RC_F(7)
 };
 
-#if defined(CONFIG_TCC_BCHECK)
+#if defined(CONFIG_NOOC_BCHECK)
 static addr_t func_bound_offset;
 static unsigned long func_bound_ind;
 ST_DATA int func_bound_add_epilog;
@@ -250,7 +250,7 @@ ST_FUNC void gsym_addr(int t_, int a_)
         unsigned char *ptr = cur_text_section->data + t;
         uint32_t next = read32le(ptr);
         if (a - t + 0x8000000 >= 0x10000000)
-            tcc_error("branch out of range");
+            nooc_error("branch out of range");
         write32le(ptr, (a - t == 4 ? 0xd503201f : // nop
                         0x14000000 | ((a - t) >> 2 & 0x3ffffff))); // b
         t = next;
@@ -261,7 +261,7 @@ static int arm64_type_size(int t)
 {
     /*
      * case values are in increasing order (from 1 to 11).
-     * which 'may' help compiler optimizers. See tcc.h
+     * which 'may' help compiler optimizers. See nooc.h
      */
     switch (t & VT_BTYPE) {
     case VT_BYTE: return 0;
@@ -668,14 +668,14 @@ static void arm64_gen_bl_or_b(int b)
 	o(0x14000000 | (uint32_t)!b << 31); // b/bl .
     }
     else {
-#ifdef CONFIG_TCC_BCHECK
+#ifdef CONFIG_NOOC_BCHECK
         vtop->r &= ~VT_MUSTBOUND;
 #endif
         o(0xd61f0000 | (uint32_t)!b << 21 | intr(gv(RC_R30)) << 5); // br/blr
     }
 }
 
-#if defined(CONFIG_TCC_BCHECK)
+#if defined(CONFIG_NOOC_BCHECK)
 
 static void gen_bounds_call(int v)
 {
@@ -829,7 +829,7 @@ static unsigned long arm64_pcs_aux(int variadic, int n, CType **type, unsigned l
         else
             size = type_size(type[i], &align);
 
-#if defined(TCC_TARGET_MACHO)
+#if defined(NOOC_TARGET_MACHO)
         if (variadic && i == variadic) {
             nx = 8;
             nv = 8;
@@ -998,8 +998,8 @@ ST_FUNC void gfunc_call(int nb_args)
     int variadic = (vtop[-nb_args].type.ref->f.func_type == FUNC_ELLIPSIS);
     int var_nb_arg = n_func_args(&vtop[-nb_args].type);
 
-#ifdef CONFIG_TCC_BCHECK
-    if (tcc_state->do_bounds_check)
+#ifdef CONFIG_NOOC_BCHECK
+    if (nooc_state->do_bounds_check)
         gbound_args(nb_args);
 #endif
 
@@ -1007,9 +1007,9 @@ ST_FUNC void gfunc_call(int nb_args)
     if ((return_type->t & VT_BTYPE) == VT_STRUCT)
         --nb_args;
 
-    t = tcc_malloc((nb_args + 1) * sizeof(*t));
-    a = tcc_malloc((nb_args + 1) * sizeof(*a));
-    a1 = tcc_malloc((nb_args + 1) * sizeof(*a1));
+    t = nooc_malloc((nb_args + 1) * sizeof(*t));
+    a = nooc_malloc((nb_args + 1) * sizeof(*a));
+    a1 = nooc_malloc((nb_args + 1) * sizeof(*a1));
 
     t[0] = return_type;
     for (i = 0; i < nb_args; i++)
@@ -1035,7 +1035,7 @@ ST_FUNC void gfunc_call(int nb_args)
       gv(RC_INT);
 
     if (stack >= 0x1000000) // 16Mb
-        tcc_error("stack size too big %lu", stack);
+        nooc_error("stack size too big %lu", stack);
     if (stack & 0xfff)
         o(0xd10003ff | (stack & 0xfff) << 10); // sub sp,sp,#(n)
     if (stack >> 12)
@@ -1166,9 +1166,9 @@ ST_FUNC void gfunc_call(int nb_args)
         }
     }
 
-    tcc_free(a1);
-    tcc_free(a);
-    tcc_free(t);
+    nooc_free(a1);
+    nooc_free(a);
+    nooc_free(t);
 }
 
 static unsigned long arm64_func_va_list_stack;
@@ -1194,15 +1194,15 @@ ST_FUNC void gfunc_prolog(Sym *func_sym)
 
     for (sym = func_type->ref; sym; sym = sym->next)
         ++n;
-    t = n ? tcc_malloc(n * sizeof(*t)) : NULL;
-    a = n ? tcc_malloc(n * sizeof(*a)) : NULL;
+    t = n ? nooc_malloc(n * sizeof(*t)) : NULL;
+    a = n ? nooc_malloc(n * sizeof(*a)) : NULL;
 
     for (sym = func_type->ref; sym; sym = sym->next)
         t[i++] = &sym->type;
 
     arm64_func_va_list_stack = arm64_pcs(variadic ? var_nb_arg : 0, n - 1, t, a);
 
-#if !defined(TCC_TARGET_MACHO)
+#if !defined(NOOC_TARGET_MACHO)
     if (variadic) {
         use_x8 = 1;
         last_int = 4;
@@ -1273,8 +1273,8 @@ ST_FUNC void gfunc_prolog(Sym *func_sym)
         }
     }
 
-    tcc_free(a);
-    tcc_free(t);
+    nooc_free(a);
+    nooc_free(t);
 
     o(0x910003fd); // mov x29,sp
     arm64_func_sub_sp_offset = ind;
@@ -1282,8 +1282,8 @@ ST_FUNC void gfunc_prolog(Sym *func_sym)
     o(0xd503201f); // nop
     o(0xd503201f); // nop
     loc = 0;
-#ifdef CONFIG_TCC_BCHECK
-    if (tcc_state->do_bounds_check)
+#ifdef CONFIG_NOOC_BCHECK
+    if (nooc_state->do_bounds_check)
         gen_bounds_prolog();
 #endif
 }
@@ -1304,7 +1304,7 @@ ST_FUNC void gen_va_start(void)
         o(0x910383be); // add x30,x29,#224
     o(0xf900001e | r << 5); // str x30,[x(r)]
 
-#if !defined(TCC_TARGET_MACHO)
+#if !defined(NOOC_TARGET_MACHO)
     if (arm64_func_va_list_gr_offs) {
         if (arm64_func_va_list_stack)
             o(0x910383be); // add x30,x29,#224
@@ -1345,7 +1345,7 @@ ST_FUNC void gen_va_arg(CType *t)
 
     if (!hfa) {
         uint32_t n = size > 16 ? 8 : (size + 7) & -8;
-#if !defined(TCC_TARGET_MACHO)
+#if !defined(NOOC_TARGET_MACHO)
         o(0xb940181e | r0 << 5); // ldr w30,[x(r0),#24] // __gr_offs
         if (align == 16) {
             assert(0); // this path untested but needed for __uint128_t
@@ -1358,7 +1358,7 @@ ST_FUNC void gen_va_arg(CType *t)
         o(0xf9400000 | r1 | r0 << 5); // ldr x(r1),[x(r0)] // __stack
         o(0x9100001e | r1 << 5 | n << 10); // add x30,x(r1),#(n)
         o(0xf900001e | r0 << 5); // str x30,[x(r0)] // __stack
-#if !defined(TCC_TARGET_MACHO)
+#if !defined(NOOC_TARGET_MACHO)
         o(0x14000004); // b .+16
         o(0xb9001800 | r1 | r0 << 5); // str w(r1),[x(r0),#24] // __gr_offs
         o(0xf9400400 | r1 | r0 << 5); // ldr x(r1),[x(r0),#8] // __gr_top
@@ -1369,7 +1369,7 @@ ST_FUNC void gen_va_arg(CType *t)
     }
     else {
         uint32_t ssz = (size + 7) & -(uint32_t)8;
-#if !defined(TCC_TARGET_MACHO)
+#if !defined(NOOC_TARGET_MACHO)
         uint32_t rsz = hfa << 4;
         uint32_t b1, b2;
         o(0xb9401c1e | r0 << 5); // ldr w30,[x(r0),#28] // __vr_offs
@@ -1383,7 +1383,7 @@ ST_FUNC void gen_va_arg(CType *t)
         }
         o(0x9100001e | r1 << 5 | ssz << 10); // add x30,x(r1),#(ssz)
         o(0xf900001e | r0 << 5); // str x30,[x(r0)] // __stack
-#if !defined(TCC_TARGET_MACHO)
+#if !defined(NOOC_TARGET_MACHO)
         b2 = ind; o(0x14000000); // b lab2
         // lab1:
         write32le(cur_text_section->data + b1, 0x5400000d | (ind - b1) << 3);
@@ -1466,8 +1466,8 @@ ST_FUNC void gfunc_return(CType *func_type)
 
 ST_FUNC void gfunc_epilog(void)
 {
-#ifdef CONFIG_TCC_BCHECK
-    if (tcc_state->do_bounds_check)
+#ifdef CONFIG_NOOC_BCHECK
+    if (nooc_state->do_bounds_check)
         gen_bounds_epilog();
 #endif
 
@@ -1509,7 +1509,7 @@ ST_FUNC void gfunc_epilog(void)
 ST_FUNC void gen_fill_nops(int bytes)
 {
     if ((bytes & 3))
-      tcc_error("alignment of code section not multiple of 4");
+      nooc_error("alignment of code section not multiple of 4");
     while (bytes > 0) {
 	o(0xd503201f); // nop
 	bytes -= 4;
@@ -1680,7 +1680,7 @@ static int arm64_gen_opic(int op, uint32_t l, int rev, uint64_t val,
         if (rev)
             return 0;
         if (!val) {
-            // tcc_warning("shift count >= width of type");
+            // nooc_warning("shift count >= width of type");
             o(0x2a0003e0 | l << 31 | a << 16);
             return 1;
         }
@@ -2139,13 +2139,13 @@ ST_FUNC void gen_vla_sp_restore(int addr) {
 
 ST_FUNC void gen_vla_alloc(CType *type, int align) {
     uint32_t r;
-#if defined(CONFIG_TCC_BCHECK)
-    if (tcc_state->do_bounds_check)
+#if defined(CONFIG_NOOC_BCHECK)
+    if (nooc_state->do_bounds_check)
         vpushv(vtop);
 #endif
     r = intr(gv(RC_INT));
-#if defined(CONFIG_TCC_BCHECK)
-    if (tcc_state->do_bounds_check)
+#if defined(CONFIG_NOOC_BCHECK)
+    if (nooc_state->do_bounds_check)
         o(0x91004000 | r | r << 5); // add x(r),x(r),#15+1
     else
 #endif
@@ -2153,8 +2153,8 @@ ST_FUNC void gen_vla_alloc(CType *type, int align) {
     o(0x927cec00 | r | r << 5); // bic x(r),x(r),#15
     o(0xcb2063ff | r << 16); // sub sp,sp,x(r)
     vpop();
-#if defined(CONFIG_TCC_BCHECK)
-    if (tcc_state->do_bounds_check) {
+#if defined(CONFIG_NOOC_BCHECK)
+    if (nooc_state->do_bounds_check) {
         vpushi(0);
         vtop->r = TREG_R(0);
         o(0x910003e0 | vtop->r); // mov r0,sp

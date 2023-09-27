@@ -1,5 +1,5 @@
 /*
- *  ARM specific functions for TCC assembler
+ *  ARM specific functions for NOOC assembler
  *
  *  Copyright (c) 2001, 2002 Fabrice Bellard
  *  Copyright (c) 2020 Danny Milosavljevic
@@ -21,7 +21,7 @@
 
 #ifdef TARGET_DEFS_ONLY
 
-#define CONFIG_TCC_ASM
+#define CONFIG_NOOC_ASM
 #define NB_ASM_REGS 16
 
 ST_FUNC void g(int c);
@@ -33,7 +33,7 @@ ST_FUNC void gen_le32(int c);
 /*************************************************************/
 
 #define USING_GLOBALS
-#include "tcc.h"
+#include "nooc.h"
 
 enum {
     OPT_REG32,
@@ -78,7 +78,7 @@ static int asm_parse_vfp_regvar(int t, int double_precision)
 }
 
 /* Parse a text containing operand and store the result in OP */
-static void parse_operand(TCCState *s1, Operand *op)
+static void parse_operand(NOOCState *s1, Operand *op)
 {
     ExprValue e;
     int8_t reg;
@@ -97,7 +97,7 @@ static void parse_operand(TCCState *s1, Operand *op)
                 next(); // skip register name
 
             if ((1 << reg) < regset)
-                tcc_warning("registers will be processed in ascending order by hardware--but are not specified in ascending order here");
+                nooc_warning("registers will be processed in ascending order by hardware--but are not specified in ascending order here");
             regset |= 1 << reg;
             if (tok != ',')
                 break;
@@ -108,7 +108,7 @@ static void parse_operand(TCCState *s1, Operand *op)
         next(); // skip '}'
         if (regset == 0) {
             // ARM instructions don't support empty regset.
-            tcc_error("empty register list is not supported");
+            nooc_error("empty register list is not supported");
         } else {
             op->type = OP_REGSET32;
             op->regset = regset;
@@ -235,7 +235,7 @@ static void asm_nullary_opcode(int token)
     }
 }
 
-static void asm_unary_opcode(TCCState *s1, int token)
+static void asm_unary_opcode(NOOCState *s1, int token)
 {
     Operand op;
     parse_operand(s1, &op);
@@ -255,7 +255,7 @@ static void asm_unary_opcode(TCCState *s1, int token)
     }
 }
 
-static void asm_binary_opcode(TCCState *s1, int token)
+static void asm_binary_opcode(NOOCState *s1, int token)
 {
     Operand ops[2];
     Operand rotation;
@@ -273,12 +273,12 @@ static void asm_binary_opcode(TCCState *s1, int token)
     }
 
     if (ops[0].reg == 15) {
-        tcc_error("'%s' does not support 'pc' as operand", get_tok_str(token, NULL));
+        nooc_error("'%s' does not support 'pc' as operand", get_tok_str(token, NULL));
         return;
     }
 
     if (ops[0].reg == 13)
-        tcc_warning("Using 'sp' as operand with '%s' is deprecated by ARM", get_tok_str(token, NULL));
+        nooc_warning("Using 'sp' as operand with '%s' is deprecated by ARM", get_tok_str(token, NULL));
 
     if (ops[1].type != OP_REG32) {
         switch (ARM_INSTRUCTION_GROUP(token)) {
@@ -307,12 +307,12 @@ static void asm_binary_opcode(TCCState *s1, int token)
     }
 
     if (ops[1].reg == 15) {
-        tcc_error("'%s' does not support 'pc' as operand", get_tok_str(token, NULL));
+        nooc_error("'%s' does not support 'pc' as operand", get_tok_str(token, NULL));
         return;
     }
 
     if (ops[1].reg == 13)
-        tcc_warning("Using 'sp' as operand with '%s' is deprecated by ARM", get_tok_str(token, NULL));
+        nooc_warning("Using 'sp' as operand with '%s' is deprecated by ARM", get_tok_str(token, NULL));
 
     if (tok == ',') {
         next(); // skip ','
@@ -344,7 +344,7 @@ static void asm_binary_opcode(TCCState *s1, int token)
     switch (ARM_INSTRUCTION_GROUP(token)) {
     case TOK_ASM_clzeq:
         if (encoded_rotation)
-            tcc_error("clz does not support rotation");
+            nooc_error("clz does not support rotation");
         asm_emit_opcode(token, 0x16f0f10 | (ops[0].reg << 12) | ops[1].reg);
         break;
     case TOK_ASM_sxtbeq:
@@ -364,7 +364,7 @@ static void asm_binary_opcode(TCCState *s1, int token)
     }
 }
 
-static void asm_coprocessor_opcode(TCCState *s1, int token) {
+static void asm_coprocessor_opcode(NOOCState *s1, int token) {
     uint8_t coprocessor;
     Operand opcode1;
     Operand opcode2;
@@ -388,7 +388,7 @@ static void asm_coprocessor_opcode(TCCState *s1, int token) {
 
     parse_operand(s1, &opcode1);
     if (opcode1.type != OP_IM8 || opcode1.e.v > 15) {
-        tcc_error("opcode1 of instruction '%s' must be an immediate value between 0 and 15", get_tok_str(token, NULL));
+        nooc_error("opcode1 of instruction '%s' must be an immediate value between 0 and 15", get_tok_str(token, NULL));
         return;
     }
 
@@ -423,7 +423,7 @@ static void asm_coprocessor_opcode(TCCState *s1, int token) {
         opcode2.e.v = 0;
     }
     if (opcode2.type != OP_IM8 || opcode2.e.v > 15) {
-        tcc_error("opcode2 of instruction '%s' must be an immediate value between 0 and 15", get_tok_str(token, NULL));
+        nooc_error("opcode2 of instruction '%s' must be an immediate value between 0 and 15", get_tok_str(token, NULL));
         return;
     }
 
@@ -445,7 +445,7 @@ static void asm_coprocessor_opcode(TCCState *s1, int token) {
     case TOK_ASM_mcreq:
         // opcode1 encoding changes! highest and lowest bit gone.
         if (opcode1.e.v > 7) {
-            tcc_error("opcode1 of instruction '%s' must be an immediate value between 0 and 7", get_tok_str(token, NULL));
+            nooc_error("opcode1 of instruction '%s' must be an immediate value between 0 and 7", get_tok_str(token, NULL));
             return;
         }
         asm_emit_coprocessor_opcode(high_nibble, coprocessor, (opcode1.e.v << 1) | mrc, registers[0], registers[1], registers[2], opcode2.e.v, 1);
@@ -472,7 +472,7 @@ static void asm_coprocessor_opcode(TCCState *s1, int token) {
 #define ENCODE_BARREL_SHIFTER_REGISTER(register_index) ((register_index) << 8)
 #define ENCODE_BARREL_SHIFTER_IMMEDIATE(value) ((value) << 7)
 
-static void asm_block_data_transfer_opcode(TCCState *s1, int token)
+static void asm_block_data_transfer_opcode(NOOCState *s1, int token)
 {
     uint32_t opcode;
     int op0_exclam = 0;
@@ -560,7 +560,7 @@ static void asm_block_data_transfer_opcode(TCCState *s1, int token)
             opcode = 0x99 << 20;
             break;
         default:
-            tcc_error("internal error: This place should not be reached (fallback in asm_block_data_transfer_opcode)");
+            nooc_error("internal error: This place should not be reached (fallback in asm_block_data_transfer_opcode)");
         }
         // operands:
         //    Rn: first operand
@@ -586,7 +586,7 @@ static void asm_block_data_transfer_opcode(TCCState *s1, int token)
 
    NB_SHIFT: will be set to 1 iff SHIFT is filled.  Note that for rrx, there's no need to fill SHIFT.
    SHIFT: will be filled in with the shift operand to use, if any. */
-static uint32_t asm_parse_optional_shift(TCCState* s1, int* nb_shift, Operand* shift)
+static uint32_t asm_parse_optional_shift(NOOCState* s1, int* nb_shift, Operand* shift)
 {
     uint32_t opcode = 0;
     *nb_shift = 0;
@@ -631,7 +631,7 @@ static uint32_t asm_encode_shift(Operand* shift)
     switch (shift->type) {
     case OP_REG32:
         if (shift->reg == 15)
-            tcc_error("r15 cannot be used as a shift count");
+            nooc_error("r15 cannot be used as a shift count");
         else {
             operands = ENCODE_BARREL_SHIFTER_SHIFT_BY_REGISTER;
             operands |= ENCODE_BARREL_SHIFTER_REGISTER(shift->reg);
@@ -642,15 +642,15 @@ static uint32_t asm_encode_shift(Operand* shift)
         if (amount > 0 && amount < 32)
             operands = ENCODE_BARREL_SHIFTER_IMMEDIATE(amount);
         else
-            tcc_error("shift count out of range");
+            nooc_error("shift count out of range");
         break;
     default:
-        tcc_error("unknown shift amount");
+        nooc_error("unknown shift amount");
     }
     return operands;
 }
 
-static void asm_data_processing_opcode(TCCState *s1, int token)
+static void asm_data_processing_opcode(NOOCState *s1, int token)
 {
     Operand ops[3];
     int nb_ops;
@@ -682,7 +682,7 @@ static void asm_data_processing_opcode(TCCState *s1, int token)
         nb_ops = 3;
     } else if (nb_ops == 3) {
         if (opcode_nos == 0xd || opcode_nos == 0xf || opcode_nos == 0xa || opcode_nos == 0xb || opcode_nos == 0x8 || opcode_nos == 0x9) { // mov, mvn, cmp, cmn, tst, teq
-            tcc_error("'%s' cannot be used with three operands", get_tok_str(token, NULL));
+            nooc_error("'%s' cannot be used with three operands", get_tok_str(token, NULL));
             return;
         }
     }
@@ -696,7 +696,7 @@ static void asm_data_processing_opcode(TCCState *s1, int token)
         if (nb_shift && shift.type == OP_REG32) {
             if ((ops[0].type == OP_REG32 && ops[0].reg == 15) ||
                 (ops[1].type == OP_REG32 && ops[1].reg == 15)) {
-                tcc_error("Using the 'pc' register in data processing instructions that have a register-controlled shift is not implemented by ARM");
+                nooc_error("Using the 'pc' register in data processing instructions that have a register-controlled shift is not implemented by ARM");
                 return;
             }
         }
@@ -795,7 +795,7 @@ static void asm_data_processing_opcode(TCCState *s1, int token)
                 immediate_value = ~immediate_value;
                 break;
             default:
-                tcc_error("cannot use '%s' with a negative immediate value", get_tok_str(token, NULL));
+                nooc_error("cannot use '%s' with a negative immediate value", get_tok_str(token, NULL));
             }
             for (half_immediate_rotation = 0; half_immediate_rotation < 16; ++half_immediate_rotation) {
                 if (immediate_value >= 0x00 && immediate_value < 0x100)
@@ -805,7 +805,7 @@ static void asm_data_processing_opcode(TCCState *s1, int token)
             }
             if (half_immediate_rotation >= 16) {
                 immediate_value = ops[2].e.v;
-                tcc_error("immediate value 0x%X cannot be encoded into ARM immediate", (unsigned) immediate_value);
+                nooc_error("immediate value 0x%X cannot be encoded into ARM immediate", (unsigned) immediate_value);
                 return;
             }
             operands |= immediate_value;
@@ -817,7 +817,7 @@ static void asm_data_processing_opcode(TCCState *s1, int token)
 
         if (nb_shift) {
             if (operands & ENCODE_IMMEDIATE_FLAG)
-                tcc_error("immediate rotation not implemented");
+                nooc_error("immediate rotation not implemented");
             else
                 operands |= asm_encode_shift(&shift);
         }
@@ -828,7 +828,7 @@ static void asm_data_processing_opcode(TCCState *s1, int token)
     }
 }
 
-static void asm_shift_opcode(TCCState *s1, int token)
+static void asm_shift_opcode(NOOCState *s1, int token)
 {
     Operand ops[3];
     int nb_ops;
@@ -866,7 +866,7 @@ static void asm_shift_opcode(TCCState *s1, int token)
                 operands |= ENCODE_BARREL_SHIFTER_MODE_ROR;
                 asm_emit_opcode(token, opcode | operands);
             } else
-                tcc_error("(first source operand) register");
+                nooc_error("(first source operand) register");
             return;
         default:
             memcpy(&ops[2], &ops[1], sizeof(ops[1])); // move ops[2]
@@ -895,7 +895,7 @@ static void asm_shift_opcode(TCCState *s1, int token)
     case OP_IM8:
         operands |= ENCODE_IMMEDIATE_FLAG;
         operands |= ops[1].e.v;
-        tcc_error("Using an immediate value as the source operand is not possible with '%s' instruction on ARM", get_tok_str(token, NULL));
+        nooc_error("Using an immediate value as the source operand is not possible with '%s' instruction on ARM", get_tok_str(token, NULL));
         return;
     }
 
@@ -903,7 +903,7 @@ static void asm_shift_opcode(TCCState *s1, int token)
     case OP_REG32:
         if ((ops[0].type == OP_REG32 && ops[0].reg == 15) ||
             (ops[1].type == OP_REG32 && ops[1].reg == 15)) {
-            tcc_error("Using the 'pc' register in data processing instructions that have a register-controlled shift is not implemented by ARM");
+            nooc_error("Using the 'pc' register in data processing instructions that have a register-controlled shift is not implemented by ARM");
         }
         operands |= asm_encode_shift(&ops[2]);
         break;
@@ -939,7 +939,7 @@ static void asm_shift_opcode(TCCState *s1, int token)
     asm_emit_opcode(token, opcode | operands);
 }
 
-static void asm_multiplication_opcode(TCCState *s1, int token)
+static void asm_multiplication_opcode(NOOCState *s1, int token)
 {
     Operand ops[4];
     int nb_ops = 0;
@@ -1021,7 +1021,7 @@ static void asm_multiplication_opcode(TCCState *s1, int token)
     }
 }
 
-static void asm_long_multiplication_opcode(TCCState *s1, int token)
+static void asm_long_multiplication_opcode(NOOCState *s1, int token)
 {
     Operand ops[4];
     int nb_ops = 0;
@@ -1098,7 +1098,7 @@ static void asm_long_multiplication_opcode(TCCState *s1, int token)
     }
 }
 
-static void asm_single_data_transfer_opcode(TCCState *s1, int token)
+static void asm_single_data_transfer_opcode(NOOCState *s1, int token)
 {
     Operand ops[3];
     Operand strex_operand;
@@ -1165,7 +1165,7 @@ static void asm_single_data_transfer_opcode(TCCState *s1, int token)
         parse_operand(s1, &ops[2]);
         if (ops[2].type == OP_REG32) {
             if (ops[2].reg == 15) {
-                tcc_error("Using 'pc' for register offset in '%s' is not implemented by ARM", get_tok_str(token, NULL));
+                nooc_error("Using 'pc' for register offset in '%s' is not implemented by ARM", get_tok_str(token, NULL));
                 return;
             }
             if (tok == ',') {
@@ -1210,16 +1210,16 @@ static void asm_single_data_transfer_opcode(TCCState *s1, int token)
     if (ops[2].type == OP_IM32 || ops[2].type == OP_IM8 || ops[2].type == OP_IM8N) {
         int v = ops[2].e.v;
         if (op2_minus)
-            tcc_error("minus before '#' not supported for immediate values");
+            nooc_error("minus before '#' not supported for immediate values");
         if (v >= 0) {
             opcode |= 1 << 23; // up
             if (v >= 0x1000)
-                tcc_error("offset out of range for '%s'", get_tok_str(token, NULL));
+                nooc_error("offset out of range for '%s'", get_tok_str(token, NULL));
             else
                 opcode |= v;
         } else { // down
             if (v <= -0x1000)
-                tcc_error("offset out of range for '%s'", get_tok_str(token, NULL));
+                nooc_error("offset out of range for '%s'", get_tok_str(token, NULL));
             else
                 opcode |= -v;
         }
@@ -1256,14 +1256,14 @@ static void asm_single_data_transfer_opcode(TCCState *s1, int token)
         /* fallthrough */
     case TOK_ASM_strexeq:
         if ((opcode & 0xFFF) || nb_shift) {
-            tcc_error("neither offset nor shift allowed with 'strex'");
+            nooc_error("neither offset nor shift allowed with 'strex'");
             return;
         } else if (opcode & ENCODE_IMMEDIATE_FLAG) { // if set, it means it's NOT immediate
-            tcc_error("offset not allowed with 'strex'");
+            nooc_error("offset not allowed with 'strex'");
             return;
         }
         if ((opcode & (1 << 24)) == 0) { // add offset after transfer
-            tcc_error("adding offset after transfer not allowed with 'strex'");
+            nooc_error("adding offset after transfer not allowed with 'strex'");
             return;
         }
 
@@ -1276,14 +1276,14 @@ static void asm_single_data_transfer_opcode(TCCState *s1, int token)
         /* fallthrough */
     case TOK_ASM_ldrexeq:
         if ((opcode & 0xFFF) || nb_shift) {
-            tcc_error("neither offset nor shift allowed with 'ldrex'");
+            nooc_error("neither offset nor shift allowed with 'ldrex'");
             return;
         } else if (opcode & ENCODE_IMMEDIATE_FLAG) { // if set, it means it's NOT immediate
-            tcc_error("offset not allowed with 'ldrex'");
+            nooc_error("offset not allowed with 'ldrex'");
             return;
         }
         if ((opcode & (1 << 24)) == 0) { // add offset after transfer
-            tcc_error("adding offset after transfer not allowed with 'ldrex'");
+            nooc_error("adding offset after transfer not allowed with 'ldrex'");
             return;
         }
         opcode |= 1 << 20; // L
@@ -1328,18 +1328,18 @@ static void asm_emit_coprocessor_data_transfer(uint32_t high_nibble, uint8_t cp_
     if (offset->type == OP_IM8 || offset->type == OP_IM8N || offset->type == OP_IM32) {
         int v = offset->e.v;
         if (offset_minus)
-            tcc_error("minus before '#' not supported for immediate values");
+            nooc_error("minus before '#' not supported for immediate values");
         if (offset->type == OP_IM8N || v < 0)
             v = -v;
         else
             opcode |= 1 << 23; // up
         if (v & 3) {
-            tcc_error("immediate offset must be a multiple of 4");
+            nooc_error("immediate offset must be a multiple of 4");
             return;
         }
         v >>= 2;
         if (v > 255) {
-            tcc_error("immediate offset must be between -1020 and 1020");
+            nooc_error("immediate offset must be between -1020 and 1020");
             return;
         }
         opcode |= v;
@@ -1348,7 +1348,7 @@ static void asm_emit_coprocessor_data_transfer(uint32_t high_nibble, uint8_t cp_
             opcode |= 1 << 23; // up
         opcode |= ENCODE_IMMEDIATE_FLAG; /* if set, it means it's NOT immediate */
         opcode |= offset->reg;
-        tcc_error("Using register offset to register address is not possible here");
+        nooc_error("Using register offset to register address is not possible here");
         return;
     } else if (offset->type == OP_VREG64) {
         opcode |= 16;
@@ -1361,7 +1361,7 @@ static void asm_emit_coprocessor_data_transfer(uint32_t high_nibble, uint8_t cp_
 
 // Almost exactly the same as asm_single_data_transfer_opcode.
 // Difference: Offsets are smaller and multiples of 4; no shifts, no STREX, ENCODE_IMMEDIATE_FLAG is inverted again.
-static void asm_coprocessor_data_transfer_opcode(TCCState *s1, int token)
+static void asm_coprocessor_data_transfer_opcode(NOOCState *s1, int token)
 {
     Operand ops[3];
     uint8_t coprocessor;
@@ -1425,11 +1425,11 @@ static void asm_coprocessor_data_transfer_opcode(TCCState *s1, int token)
         parse_operand(s1, &ops[2]);
         if (ops[2].type == OP_REG32) {
             if (ops[2].reg == 15) {
-                tcc_error("Using 'pc' for register offset in '%s' is not implemented by ARM", get_tok_str(token, NULL));
+                nooc_error("Using 'pc' for register offset in '%s' is not implemented by ARM", get_tok_str(token, NULL));
                 return;
             }
         } else if (ops[2].type == OP_VREG64) {
-            tcc_error("'%s' does not support VFP register operand", get_tok_str(token, NULL));
+            nooc_error("'%s' does not support VFP register operand", get_tok_str(token, NULL));
             return;
         }
     } else {
@@ -1485,11 +1485,11 @@ static void asm_coprocessor_data_transfer_opcode(TCCState *s1, int token)
     }
 }
 
-#if defined(TCC_ARM_VFP)
+#if defined(NOOC_ARM_VFP)
 #define CP_SINGLE_PRECISION_FLOAT 10
 #define CP_DOUBLE_PRECISION_FLOAT 11
 
-static void asm_floating_point_single_data_transfer_opcode(TCCState *s1, int token)
+static void asm_floating_point_single_data_transfer_opcode(NOOCState *s1, int token)
 {
     Operand ops[3];
     uint8_t coprocessor = 0;
@@ -1558,7 +1558,7 @@ static void asm_floating_point_single_data_transfer_opcode(TCCState *s1, int tok
     }
 }
 
-static void asm_floating_point_block_data_transfer_opcode(TCCState *s1, int token)
+static void asm_floating_point_block_data_transfer_opcode(NOOCState *s1, int token)
 {
     uint8_t coprocessor = 0;
     int first_regset_register;
@@ -1620,7 +1620,7 @@ static void asm_floating_point_block_data_transfer_opcode(TCCState *s1, int toke
         last_regset_register = first_regset_register;
 
     if (last_regset_register < first_regset_register) {
-        tcc_error("registers will be processed in ascending order by hardware--but are not specified in ascending order here");
+        nooc_error("registers will be processed in ascending order by hardware--but are not specified in ascending order here");
         return;
     }
     if (tok != '}') {
@@ -1664,9 +1664,9 @@ static void asm_floating_point_block_data_transfer_opcode(TCCState *s1, int toke
     if (ops[0].type != OP_REG32)
         expect("(first operand) register");
     else if (ops[0].reg == 15)
-        tcc_error("'%s' does not support 'pc' as operand", get_tok_str(token, NULL));
+        nooc_error("'%s' does not support 'pc' as operand", get_tok_str(token, NULL));
     else if (!op0_exclam && ARM_INSTRUCTION_GROUP(token) != TOK_ASM_vldmeq && ARM_INSTRUCTION_GROUP(token) != TOK_ASM_vldmiaeq && ARM_INSTRUCTION_GROUP(token) != TOK_ASM_vstmeq && ARM_INSTRUCTION_GROUP(token) != TOK_ASM_vstmiaeq)
-        tcc_error("first operand of '%s' should have an exclamation mark", get_tok_str(token, NULL));
+        nooc_error("first operand of '%s' should have an exclamation mark", get_tok_str(token, NULL));
     else
         asm_emit_coprocessor_data_transfer(condition_code_of_token(token), coprocessor, first_regset_register, &ops[0], &offset, 0, preincrement, op0_exclam, extra_register_bit, load);
 }
@@ -1720,7 +1720,7 @@ static uint32_t vmov_parse_immediate_value() {
     integral_value = strtoul(p, (char **)&p, 0);
 
     if (errno || integral_value >= 32) {
-        tcc_error("invalid floating-point immediate value");
+        nooc_error("invalid floating-point immediate value");
         return 0;
     }
 
@@ -1753,7 +1753,7 @@ static uint8_t vmov_encode_immediate_value(uint32_t value)
             limit >>= 1;
     }
     if (r == -1 || value < beginning || value > end) {
-        tcc_error("invalid decimal number for vmov: %d", value);
+        nooc_error("invalid decimal number for vmov: %d", value);
         return 0;
     }
     n = vmov_linear_approx_index(beginning, end, value);
@@ -1761,7 +1761,7 @@ static uint8_t vmov_encode_immediate_value(uint32_t value)
 }
 
 // Not standalone.
-static void asm_floating_point_immediate_data_processing_opcode_tail(TCCState *s1, int token, uint8_t coprocessor, uint8_t CRd) {
+static void asm_floating_point_immediate_data_processing_opcode_tail(NOOCState *s1, int token, uint8_t coprocessor, uint8_t CRd) {
     uint8_t opcode1 = 0;
     uint8_t opcode2 = 0;
     uint8_t operands[3] = {0, 0, 0};
@@ -1825,14 +1825,14 @@ static void asm_floating_point_immediate_data_processing_opcode_tail(TCCState *s
     asm_emit_coprocessor_opcode(condition_code_of_token(token), coprocessor, opcode1, operands[0], operands[1], operands[2], opcode2, 0);
 }
 
-static void asm_floating_point_reg_arm_reg_transfer_opcode_tail(TCCState *s1, int token, int coprocessor, int nb_arm_regs, int nb_ops, Operand ops[3]) {
+static void asm_floating_point_reg_arm_reg_transfer_opcode_tail(NOOCState *s1, int token, int coprocessor, int nb_arm_regs, int nb_ops, Operand ops[3]) {
     uint8_t opcode1 = 0;
     uint8_t opcode2 = 0;
     switch (coprocessor) {
     case CP_SINGLE_PRECISION_FLOAT:
         // "vmov.f32 r2, s3" or "vmov.f32 s3, r2"
         if (nb_ops != 2 || nb_arm_regs != 1) {
-            tcc_error("vmov.f32 only implemented for one VFP register operand and one ARM register operands");
+            nooc_error("vmov.f32 only implemented for one VFP register operand and one ARM register operands");
             return;
         }
         if (ops[0].type != OP_REG32) { // determine mode: load or store
@@ -1859,7 +1859,7 @@ static void asm_floating_point_reg_arm_reg_transfer_opcode_tail(TCCState *s1, in
         break;
     case CP_DOUBLE_PRECISION_FLOAT:
         if (nb_ops != 3 || nb_arm_regs != 2) {
-            tcc_error("vmov.f32 only implemented for one VFP register operand and two ARM register operands");
+            nooc_error("vmov.f32 only implemented for one VFP register operand and two ARM register operands");
             return;
         }
         // Determine whether it's a store into a VFP register (vmov "d1, r2, r3") rather than "vmov r2, r3, d1"
@@ -1872,11 +1872,11 @@ static void asm_floating_point_reg_arm_reg_transfer_opcode_tail(TCCState *s1, in
                 memcpy(&ops[1], &ops[2], sizeof(ops[1]));
                 memcpy(&ops[2], &temp, sizeof(ops[2]));
             } else {
-                tcc_error("vmov.f64 only implemented for one VFP register operand and two ARM register operands");
+                nooc_error("vmov.f64 only implemented for one VFP register operand and two ARM register operands");
                 return;
             }
         } else if (ops[0].type != OP_REG32 || ops[1].type != OP_REG32 || ops[2].type != OP_VREG64) {
-            tcc_error("vmov.f64 only implemented for one VFP register operand and two ARM register operands");
+            nooc_error("vmov.f64 only implemented for one VFP register operand and two ARM register operands");
             return;
         } else {
             opcode1 |= 1;
@@ -1884,11 +1884,11 @@ static void asm_floating_point_reg_arm_reg_transfer_opcode_tail(TCCState *s1, in
         asm_emit_coprocessor_data_transfer(condition_code_of_token(token), coprocessor, ops[0].reg, &ops[1], &ops[2], 0, 0, 0, 1, opcode1);
         break;
     default:
-        tcc_internal_error("unknown coprocessor");
+        nooc_internal_error("unknown coprocessor");
     }
 }
 
-static void asm_floating_point_vcvt_data_processing_opcode(TCCState *s1, int token) {
+static void asm_floating_point_vcvt_data_processing_opcode(NOOCState *s1, int token) {
     uint8_t coprocessor = 0;
     Operand ops[3];
     uint8_t opcode1 = 11;
@@ -1914,7 +1914,7 @@ static void asm_floating_point_vcvt_data_processing_opcode(TCCState *s1, int tok
        coprocessor = CP_SINGLE_PRECISION_FLOAT;
        break;
     default:
-       tcc_error("Unknown coprocessor for instruction '%s'", get_tok_str(token, NULL));
+       nooc_error("Unknown coprocessor for instruction '%s'", get_tok_str(token, NULL));
        return;
     }
 
@@ -2009,7 +2009,7 @@ static void asm_floating_point_vcvt_data_processing_opcode(TCCState *s1, int tok
     asm_emit_coprocessor_opcode(condition_code_of_token(token), coprocessor, opcode1, ops[0].reg, (ops[1].type == OP_IM8) ? ops[1].e.v : ops[1].reg, (ops[2].type == OP_IM8) ? ops[2].e.v : ops[2].reg, opcode2, 0);
 }
 
-static void asm_floating_point_data_processing_opcode(TCCState *s1, int token) {
+static void asm_floating_point_data_processing_opcode(NOOCState *s1, int token) {
     uint8_t coprocessor = CP_SINGLE_PRECISION_FLOAT;
     uint8_t opcode1 = 0;
     uint8_t opcode2 = 0; // (0 || 2) | register selection
@@ -2099,7 +2099,7 @@ static void asm_floating_point_data_processing_opcode(TCCState *s1, int token) {
             nb_ops = 3;
         }
         if (nb_ops < 3) {
-            tcc_error("Not enough operands for '%s' (%u)", get_tok_str(token, NULL), nb_ops);
+            nooc_error("Not enough operands for '%s' (%u)", get_tok_str(token, NULL), nb_ops);
             return;
         }
     }
@@ -2239,7 +2239,7 @@ static int asm_parse_vfp_status_regvar(int t)
     }
 }
 
-static void asm_floating_point_status_register_opcode(TCCState* s1, int token)
+static void asm_floating_point_status_register_opcode(NOOCState* s1, int token)
 {
     uint8_t coprocessor = CP_SINGLE_PRECISION_FLOAT;
     uint8_t opcode;
@@ -2255,7 +2255,7 @@ static void asm_floating_point_status_register_opcode(TCCState* s1, int token)
         } else {
             parse_operand(s1, &arm_operand);
             if (arm_operand.type == OP_REG32 && arm_operand.reg == 15) {
-                tcc_error("'%s' does not support 'pc' as operand", get_tok_str(token, NULL));
+                nooc_error("'%s' does not support 'pc' as operand", get_tok_str(token, NULL));
                 return;
             }
         }
@@ -2267,7 +2267,7 @@ static void asm_floating_point_status_register_opcode(TCCState* s1, int token)
         vfp_sys_reg = asm_parse_vfp_status_regvar(tok);
         next(); // skip vfp sys reg
         if (arm_operand.type == OP_REG32 && arm_operand.reg == 15 && vfp_sys_reg != 1) {
-            tcc_error("'%s' only supports the variant 'vmrs apsr_nzcv, fpscr' here", get_tok_str(token, NULL));
+            nooc_error("'%s' only supports the variant 'vmrs apsr_nzcv, fpscr' here", get_tok_str(token, NULL));
             return;
         }
         break;
@@ -2281,7 +2281,7 @@ static void asm_floating_point_status_register_opcode(TCCState* s1, int token)
             next(); // skip ','
         parse_operand(s1, &arm_operand);
         if (arm_operand.type == OP_REG32 && arm_operand.reg == 15) {
-            tcc_error("'%s' does not support 'pc' as operand", get_tok_str(token, NULL));
+            nooc_error("'%s' does not support 'pc' as operand", get_tok_str(token, NULL));
             return;
         }
         break;
@@ -2302,7 +2302,7 @@ static void asm_floating_point_status_register_opcode(TCCState* s1, int token)
 
 #endif
 
-static void asm_misc_single_data_transfer_opcode(TCCState *s1, int token)
+static void asm_misc_single_data_transfer_opcode(NOOCState *s1, int token)
 {
     Operand ops[3];
     int exclam = 0;
@@ -2378,7 +2378,7 @@ static void asm_misc_single_data_transfer_opcode(TCCState *s1, int token)
 
     if (exclam) {
         if ((opcode & (1 << 24)) == 0) {
-            tcc_error("result of '%s' would be unpredictable here", get_tok_str(token, NULL));
+            nooc_error("result of '%s' would be unpredictable here", get_tok_str(token, NULL));
             return;
         }
         opcode |= 1 << 21; // write offset back into register
@@ -2387,11 +2387,11 @@ static void asm_misc_single_data_transfer_opcode(TCCState *s1, int token)
     if (ops[2].type == OP_IM32 || ops[2].type == OP_IM8 || ops[2].type == OP_IM8N) {
         int v = ops[2].e.v;
         if (op2_minus)
-            tcc_error("minus before '#' not supported for immediate values");
+            nooc_error("minus before '#' not supported for immediate values");
         if (v >= 0) {
             opcode |= 1 << 23; // up
             if (v >= 0x100)
-                tcc_error("offset out of range for '%s'", get_tok_str(token, NULL));
+                nooc_error("offset out of range for '%s'", get_tok_str(token, NULL));
             else {
                 // bits 11...8: immediate hi nibble
                 // bits 3...0: immediate lo nibble
@@ -2400,7 +2400,7 @@ static void asm_misc_single_data_transfer_opcode(TCCState *s1, int token)
             }
         } else { // down
             if (v <= -0x100)
-                tcc_error("offset out of range for '%s'", get_tok_str(token, NULL));
+                nooc_error("offset out of range for '%s'", get_tok_str(token, NULL));
             else {
                 v = -v;
                 // bits 11...8: immediate hi nibble
@@ -2445,13 +2445,13 @@ static uint32_t encbranchoffset(int pos, int addr, int fail)
   addr/=4;
   if(addr>=0x7fffff || addr<-0x800000) {
     if(fail)
-      tcc_error("branch offset is too far");
+      nooc_error("branch offset is too far");
     return 0;
   }
   return /*not 0x0A000000|*/(addr&0xffffff);
 }
 
-static void asm_branch_opcode(TCCState *s1, int token)
+static void asm_branch_opcode(NOOCState *s1, int token)
 {
     int jmp_disp = 0;
     Operand op;
@@ -2464,7 +2464,7 @@ static void asm_branch_opcode(TCCState *s1, int token)
         asm_expr(s1, &e);
         esym = elfsym(e.sym);
         if (!esym || esym->st_shndx != cur_text_section->sh_num) {
-            tcc_error("invalid branch target");
+            nooc_error("invalid branch target");
             return;
         }
         jmp_disp = encbranchoffset(ind, e.v + esym->st_value, 1);
@@ -2497,7 +2497,7 @@ static void asm_branch_opcode(TCCState *s1, int token)
     }
 }
 
-ST_FUNC void asm_opcode(TCCState *s1, int token)
+ST_FUNC void asm_opcode(NOOCState *s1, int token)
 {
     while (token == TOK_LINEFEED) {
         next();
@@ -2659,7 +2659,7 @@ ST_FUNC void asm_opcode(TCCState *s1, int token)
         asm_coprocessor_data_transfer_opcode(s1, token);
         return;
 
-#if defined(TCC_ARM_VFP)
+#if defined(NOOC_ARM_VFP)
     case TOK_ASM_vldreq:
     case TOK_ASM_vstreq:
         asm_floating_point_single_data_transfer_opcode(s1, token);
@@ -2757,7 +2757,7 @@ ST_FUNC void subst_asm_operand(CString *add_str, SValue *sv, int modifier)
                    list when we still know the symbol.  */
                 get_asm_sym(tok_alloc(name, strlen(name))->tok, sv->sym);
             }
-            if (tcc_state->leading_underscore)
+            if (nooc_state->leading_underscore)
                 cstr_ccat(add_str, '_');
             cstr_cat(add_str, name, -1);
             if ((uint32_t) sv->c.i == 0)
@@ -2776,7 +2776,7 @@ ST_FUNC void subst_asm_operand(CString *add_str, SValue *sv, int modifier)
     } else if (r & VT_LVAL) {
         reg = r & VT_VALMASK;
         if (reg >= VT_CONST)
-            tcc_internal_error("");
+            nooc_internal_error("");
         snprintf(buf, sizeof(buf), "[%s]",
                  get_tok_str(TOK_ASM_r0 + reg, NULL));
         cstr_cat(add_str, buf, -1);
@@ -2784,7 +2784,7 @@ ST_FUNC void subst_asm_operand(CString *add_str, SValue *sv, int modifier)
         /* register case */
         reg = r & VT_VALMASK;
         if (reg >= VT_CONST)
-            tcc_internal_error("");
+            nooc_internal_error("");
 
         /* choose register operand size */
         if ((sv->type.t & VT_BTYPE) == VT_BYTE ||
@@ -2863,7 +2863,7 @@ ST_FUNC void asm_gen_code(ASMOperand *operands, int nb_operands,
                     /* load value in register */
                     load(op->reg, op->vt);
                     if (op->is_llong)
-                        tcc_error("long long not implemented");
+                        nooc_error("long long not implemented");
                 }
             }
         }
@@ -2887,7 +2887,7 @@ ST_FUNC void asm_gen_code(ASMOperand *operands, int nb_operands,
                 } else {
                     store(op->reg, op->vt);
                     if (op->is_llong)
-                        tcc_error("long long not implemented");
+                        nooc_error("long long not implemented");
                 }
             }
         }
@@ -2927,7 +2927,7 @@ static inline int constraint_priority(const char *str)
             pr = 4;
             break;
         default:
-            tcc_error("unknown constraint '%c'", c);
+            nooc_error("unknown constraint '%c'", c);
             pr = 0;
         }
         if (pr > priority)
@@ -3011,11 +3011,11 @@ ST_FUNC void asm_compute_constraints(ASMOperand *operands,
             /* this is a reference to another constraint */
             k = find_constraint(operands, nb_operands, str, NULL);
             if ((unsigned) k >= i || i < nb_outputs)
-                tcc_error("invalid reference in constraint %d ('%s')",
+                nooc_error("invalid reference in constraint %d ('%s')",
                           i, str);
             op->ref_index = k;
             if (operands[k].input_index >= 0)
-                tcc_error("cannot reference twice the same operand");
+                nooc_error("cannot reference twice the same operand");
             operands[k].input_index = i;
             op->priority = 5;
         } else if ((op->vt->r & VT_VALMASK) == VT_LOCAL
@@ -3072,7 +3072,7 @@ ST_FUNC void asm_compute_constraints(ASMOperand *operands,
         }
         if (op->reg >= 0) {
             if (is_reg_allocated(op->reg))
-                tcc_error
+                nooc_error
                     ("asm regvar requests register that's taken already");
             reg = op->reg;
             goto reg_found;
@@ -3087,7 +3087,7 @@ ST_FUNC void asm_compute_constraints(ASMOperand *operands,
             /* FALL THRU */
         case '&': // Operand is clobbered before the instruction is done using the input operands
             if (j >= nb_outputs)
-                tcc_error("'%c' modifier can only be applied to outputs",
+                nooc_error("'%c' modifier can only be applied to outputs",
                           c);
             reg_mask = REG_IN_MASK | REG_OUT_MASK;
             goto try_next;
@@ -3147,7 +3147,7 @@ ST_FUNC void asm_compute_constraints(ASMOperand *operands,
             }
             break;
         default:
-            tcc_error("asm constraint %d ('%s') could not be satisfied",
+            nooc_error("asm constraint %d ('%s') could not be satisfied",
                       j, op->constraint);
             break;
         }
@@ -3169,7 +3169,7 @@ ST_FUNC void asm_compute_constraints(ASMOperand *operands,
                 if (!(regs_allocated[reg] & REG_OUT_MASK))
                     goto reg_found2;
             }
-            tcc_error("could not find free output register for reloading");
+            nooc_error("could not find free output register for reloading");
           reg_found2:
             *pout_reg = reg;
             break;
@@ -3203,7 +3203,7 @@ ST_FUNC void asm_clobber(uint8_t *clobber_regs, const char *str)
     ts = tok_alloc(str, strlen(str));
     reg = asm_parse_regvar(ts->tok);
     if (reg == -1) {
-        tcc_error("invalid clobber register '%s'", str);
+        nooc_error("invalid clobber register '%s'", str);
     }
     clobber_regs[reg] = 1;
 }

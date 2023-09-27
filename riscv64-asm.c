@@ -1,12 +1,12 @@
 /*************************************************************/
 /*
- *  RISCV64 assembler for TCC
+ *  RISCV64 assembler for NOOC
  *
  */
 
 #ifdef TARGET_DEFS_ONLY
 
-#define CONFIG_TCC_ASM
+#define CONFIG_NOOC_ASM
 #define NB_ASM_REGS 32
 
 ST_FUNC void g(int c);
@@ -17,7 +17,7 @@ ST_FUNC void gen_le32(int c);
 #else
 /*************************************************************/
 #define USING_GLOBALS
-#include "tcc.h"
+#include "nooc.h"
 
 /* XXX: make it faster ? */
 ST_FUNC void g(int c)
@@ -61,7 +61,7 @@ static void asm_emit_opcode(uint32_t opcode) {
     gen_le32(opcode);
 }
 
-static void asm_nullary_opcode(TCCState *s1, int token)
+static void asm_nullary_opcode(NOOCState *s1, int token)
 {
     switch (token) {
     // Sync instructions
@@ -114,7 +114,7 @@ typedef struct Operand {
 static void asm_emit_i(int token, uint32_t opcode, const Operand* rd, const Operand* rs1, const Operand* rs2);
 
 /* Parse a text containing operand and store the result in OP */
-static void parse_operand(TCCState *s1, Operand *op)
+static void parse_operand(NOOCState *s1, Operand *op)
 {
     ExprValue e;
     int8_t reg;
@@ -145,7 +145,7 @@ static void parse_operand(TCCState *s1, Operand *op)
 #define ENCODE_RD(register_index) ((register_index) << 7)
 
 // Note: Those all map to CSR--so they are pseudo-instructions.
-static void asm_unary_opcode(TCCState *s1, int token)
+static void asm_unary_opcode(NOOCState *s1, int token)
 {
     uint32_t opcode = (0x1C << 2) | 3 | (2 << 12);
     Operand op;
@@ -183,14 +183,14 @@ static void asm_unary_opcode(TCCState *s1, int token)
 static void asm_emit_u(int token, uint32_t opcode, const Operand* rd, const Operand* rs2)
 {
     if (rd->type != OP_REG) {
-        tcc_error("'%s': Expected destination operand that is a register", get_tok_str(token, NULL));
+        nooc_error("'%s': Expected destination operand that is a register", get_tok_str(token, NULL));
         return;
     }
     if (rs2->type != OP_IM12S && rs2->type != OP_IM32) {
-        tcc_error("'%s': Expected second source operand that is an immediate value", get_tok_str(token, NULL));
+        nooc_error("'%s': Expected second source operand that is an immediate value", get_tok_str(token, NULL));
         return;
     } else if (rs2->e.v >= 0x100000) {
-        tcc_error("'%s': Expected second source operand that is an immediate value between 0 and 0xfffff", get_tok_str(token, NULL));
+        nooc_error("'%s': Expected second source operand that is an immediate value between 0 and 0xfffff", get_tok_str(token, NULL));
         return;
     }
     /* U-type instruction:
@@ -200,7 +200,7 @@ static void asm_emit_u(int token, uint32_t opcode, const Operand* rd, const Oper
     gen_le32(opcode | ENCODE_RD(rd->reg) | (rs2->e.v << 12));
 }
 
-static void asm_binary_opcode(TCCState* s1, int token)
+static void asm_binary_opcode(NOOCState* s1, int token)
 {
     Operand ops[2];
     parse_operand(s1, &ops[0]);
@@ -229,15 +229,15 @@ static void asm_binary_opcode(TCCState* s1, int token)
 static void asm_emit_r(int token, uint32_t opcode, const Operand* rd, const Operand* rs1, const Operand* rs2)
 {
     if (rd->type != OP_REG) {
-        tcc_error("'%s': Expected destination operand that is a register", get_tok_str(token, NULL));
+        nooc_error("'%s': Expected destination operand that is a register", get_tok_str(token, NULL));
         return;
     }
     if (rs1->type != OP_REG) {
-        tcc_error("'%s': Expected first source operand that is a register", get_tok_str(token, NULL));
+        nooc_error("'%s': Expected first source operand that is a register", get_tok_str(token, NULL));
         return;
     }
     if (rs2->type != OP_REG) {
-        tcc_error("'%s': Expected second source operand that is a register or immediate", get_tok_str(token, NULL));
+        nooc_error("'%s': Expected second source operand that is a register or immediate", get_tok_str(token, NULL));
         return;
     }
     /* R-type instruction:
@@ -254,15 +254,15 @@ static void asm_emit_r(int token, uint32_t opcode, const Operand* rd, const Oper
 static void asm_emit_i(int token, uint32_t opcode, const Operand* rd, const Operand* rs1, const Operand* rs2)
 {
     if (rd->type != OP_REG) {
-        tcc_error("'%s': Expected destination operand that is a register", get_tok_str(token, NULL));
+        nooc_error("'%s': Expected destination operand that is a register", get_tok_str(token, NULL));
         return;
     }
     if (rs1->type != OP_REG) {
-        tcc_error("'%s': Expected first source operand that is a register", get_tok_str(token, NULL));
+        nooc_error("'%s': Expected first source operand that is a register", get_tok_str(token, NULL));
         return;
     }
     if (rs2->type != OP_IM12S) {
-        tcc_error("'%s': Expected second source operand that is an immediate value between 0 and 4095", get_tok_str(token, NULL));
+        nooc_error("'%s': Expected second source operand that is an immediate value between 0 and 4095", get_tok_str(token, NULL));
         return;
     }
     /* I-type instruction:
@@ -275,7 +275,7 @@ static void asm_emit_i(int token, uint32_t opcode, const Operand* rd, const Oper
     gen_le32(opcode | ENCODE_RD(rd->reg) | ENCODE_RS1(rs1->reg) | (rs2->e.v << 20));
 }
 
-static void asm_shift_opcode(TCCState *s1, int token)
+static void asm_shift_opcode(NOOCState *s1, int token)
 {
     Operand ops[3];
     parse_operand(s1, &ops[0]);
@@ -332,7 +332,7 @@ static void asm_shift_opcode(TCCState *s1, int token)
     }
 }
 
-static void asm_data_processing_opcode(TCCState* s1, int token)
+static void asm_data_processing_opcode(NOOCState* s1, int token)
 {
     Operand ops[3];
     parse_operand(s1, &ops[0]);
@@ -419,15 +419,15 @@ static void asm_data_processing_opcode(TCCState* s1, int token)
 static void asm_emit_s(int token, uint32_t opcode, const Operand* rs1, const Operand* rs2, const Operand* imm)
 {
     if (rs1->type != OP_REG) {
-        tcc_error("'%s': Expected first source operand that is a register", get_tok_str(token, NULL));
+        nooc_error("'%s': Expected first source operand that is a register", get_tok_str(token, NULL));
         return;
     }
     if (rs2->type != OP_REG) {
-        tcc_error("'%s': Expected second source operand that is a register", get_tok_str(token, NULL));
+        nooc_error("'%s': Expected second source operand that is a register", get_tok_str(token, NULL));
         return;
     }
     if (imm->type != OP_IM12S) {
-        tcc_error("'%s': Expected third operand that is an immediate value between 0 and 0xfff", get_tok_str(token, NULL));
+        nooc_error("'%s': Expected third operand that is an immediate value between 0 and 0xfff", get_tok_str(token, NULL));
         return;
     }
     {
@@ -444,7 +444,7 @@ static void asm_emit_s(int token, uint32_t opcode, const Operand* rs1, const Ope
     }
 }
 
-static void asm_data_transfer_opcode(TCCState* s1, int token)
+static void asm_data_transfer_opcode(NOOCState* s1, int token)
 {
     Operand ops[3];
     parse_operand(s1, &ops[0]);
@@ -513,7 +513,7 @@ static void asm_data_transfer_opcode(TCCState* s1, int token)
     }
 }
 
-static void asm_branch_opcode(TCCState* s1, int token)
+static void asm_branch_opcode(NOOCState* s1, int token)
 {
     // Branch (RS1,RS2,IMM); SB-format
     uint32_t opcode = (0x18 << 2) | 3;
@@ -540,12 +540,12 @@ static void asm_branch_opcode(TCCState* s1, int token)
     parse_operand(s1, &ops[2]);
 
     if (ops[2].type != OP_IM12S) {
-        tcc_error("'%s': Expected third operand that is an immediate value between 0 and 0xfff", get_tok_str(token, NULL));
+        nooc_error("'%s': Expected third operand that is an immediate value between 0 and 0xfff", get_tok_str(token, NULL));
         return;
     }
     offset = ops[2].e.v;
     if (offset & 1) {
-        tcc_error("'%s': Expected third operand that is an even immediate value", get_tok_str(token, NULL));
+        nooc_error("'%s': Expected third operand that is an even immediate value", get_tok_str(token, NULL));
         return;
     }
 
@@ -574,7 +574,7 @@ static void asm_branch_opcode(TCCState* s1, int token)
     asm_emit_opcode(opcode | ENCODE_RS1(ops[0].reg) | ENCODE_RS2(ops[1].reg) | (((offset >> 1) & 0xF) << 8) | (((offset >> 5) & 0x1f) << 25) | (((offset >> 11) & 1) << 7) | (((offset >> 12) & 1) << 31));
 }
 
-ST_FUNC void asm_opcode(TCCState *s1, int token)
+ST_FUNC void asm_opcode(NOOCState *s1, int token)
 {
     switch (token) {
     case TOK_ASM_fence:
@@ -674,7 +674,7 @@ ST_FUNC void asm_opcode(TCCState *s1, int token)
 
 ST_FUNC void subst_asm_operand(CString *add_str, SValue *sv, int modifier)
 {
-    tcc_error("RISCV64 asm not implemented.");
+    nooc_error("RISCV64 asm not implemented.");
 }
 
 /* generate prolog and epilog code for asm statement */
@@ -704,7 +704,7 @@ ST_FUNC void asm_clobber(uint8_t *clobber_regs, const char *str)
     ts = tok_alloc(str, strlen(str));
     reg = asm_parse_regvar(ts->tok);
     if (reg == -1) {
-        tcc_error("invalid clobber register '%s'", str);
+        nooc_error("invalid clobber register '%s'", str);
     }
     clobber_regs[reg] = 1;
 }
@@ -718,7 +718,7 @@ ST_FUNC int asm_parse_regvar (int t)
             case TOK_ASM_s0:
                 return 8;
             case TOK_ASM_pc:
-	        tcc_error("PC register not implemented.");
+	        nooc_error("PC register not implemented.");
             default:
                 return t - TOK_ASM_x0;
         }

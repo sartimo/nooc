@@ -1,6 +1,6 @@
 #ifdef TARGET_DEFS_ONLY
 
-#define EM_TCC_TARGET EM_X86_64
+#define EM_NOOC_TARGET EM_X86_64
 
 /* relocation type for 32 bit data relocation */
 #define R_DATA_32   R_X86_64_32S
@@ -20,7 +20,7 @@
 
 #else /* !TARGET_DEFS_ONLY */
 
-#include "tcc.h"
+#include "nooc.h"
 
 #ifdef NEED_RELOC_TYPE
 /* Returns 1 for a code relocation, 0 for a data relocation. For unknown
@@ -62,7 +62,7 @@ int code_reloc (int reloc_type)
 }
 
 /* Returns an enumerator to describe whether and when the relocation needs a
-   GOT and/or PLT entry to be created. See tcc.h for a description of the
+   GOT and/or PLT entry to be created. See nooc.h for a description of the
    different values. */
 int gotplt_entry_type (int reloc_type)
 {
@@ -109,7 +109,7 @@ int gotplt_entry_type (int reloc_type)
 }
 
 #ifdef NEED_BUILD_GOT
-ST_FUNC unsigned create_plt_entry(TCCState *s1, unsigned got_offset, struct sym_attr *attr)
+ST_FUNC unsigned create_plt_entry(NOOCState *s1, unsigned got_offset, struct sym_attr *attr)
 {
     Section *plt = s1->plt;
     uint8_t *p;
@@ -152,7 +152,7 @@ ST_FUNC unsigned create_plt_entry(TCCState *s1, unsigned got_offset, struct sym_
 
 /* relocate the PLT: compute addresses and offsets in the PLT now that final
    address for PLT and GOT are known (see fill_program_header) */
-ST_FUNC void relocate_plt(TCCState *s1)
+ST_FUNC void relocate_plt(NOOCState *s1)
 {
     uint8_t *p, *p_end;
 
@@ -186,7 +186,7 @@ ST_FUNC void relocate_plt(TCCState *s1)
 #endif
 #endif
 
-void relocate(TCCState *s1, ElfW_Rel *rel, int type, unsigned char *ptr, addr_t addr, addr_t val)
+void relocate(NOOCState *s1, ElfW_Rel *rel, int type, unsigned char *ptr, addr_t addr, addr_t val)
 {
     int sym_index, esym_index;
 
@@ -194,7 +194,7 @@ void relocate(TCCState *s1, ElfW_Rel *rel, int type, unsigned char *ptr, addr_t 
 
     switch (type) {
         case R_X86_64_64:
-            if (s1->output_type & TCC_OUTPUT_DYN) {
+            if (s1->output_type & NOOC_OUTPUT_DYN) {
                 esym_index = get_sym_attr(s1, sym_index, 0)->dyn_index;
                 qrel->r_offset = rel->r_offset;
                 if (esym_index) {
@@ -212,9 +212,9 @@ void relocate(TCCState *s1, ElfW_Rel *rel, int type, unsigned char *ptr, addr_t 
             break;
         case R_X86_64_32:
         case R_X86_64_32S:
-            if (s1->output_type & TCC_OUTPUT_DYN) {
-                /* XXX: this logic may depend on TCC's codegen
-                   now TCC uses R_X86_64_32 even for a 64bit pointer */
+            if (s1->output_type & NOOC_OUTPUT_DYN) {
+                /* XXX: this logic may depend on NOOC's codegen
+                   now NOOC uses R_X86_64_32 even for a 64bit pointer */
                 qrel->r_offset = rel->r_offset;
                 qrel->r_info = ELFW(R_INFO)(0, R_X86_64_RELATIVE);
                 /* Use sign extension! */
@@ -225,7 +225,7 @@ void relocate(TCCState *s1, ElfW_Rel *rel, int type, unsigned char *ptr, addr_t 
             break;
 
         case R_X86_64_PC32:
-            if (s1->output_type == TCC_OUTPUT_DLL) {
+            if (s1->output_type == NOOC_OUTPUT_DLL) {
                 /* DLL relocation */
                 esym_index = get_sym_attr(s1, sym_index, 0)->dyn_index;
                 if (esym_index) {
@@ -247,11 +247,11 @@ void relocate(TCCState *s1, ElfW_Rel *rel, int type, unsigned char *ptr, addr_t 
             long long diff;
             diff = (long long)val - addr;
             if (diff < -2147483648LL || diff > 2147483647LL) {
-#ifdef TCC_TARGET_PE
+#ifdef NOOC_TARGET_PE
               /* ignore overflow with undefined weak symbols */
               if (((ElfW(Sym)*)symtab_section->data)[sym_index].st_shndx != SHN_UNDEF)
 #endif
-                tcc_error_noabort("internal error: relocation failed");
+                nooc_error_noabort("internal error: relocation failed");
             }
             add32le(ptr, diff);
         }
@@ -265,7 +265,7 @@ void relocate(TCCState *s1, ElfW_Rel *rel, int type, unsigned char *ptr, addr_t 
             break;
 
         case R_X86_64_PC64:
-            if (s1->output_type == TCC_OUTPUT_DLL) {
+            if (s1->output_type == NOOC_OUTPUT_DLL) {
                 /* DLL relocation */
                 esym_index = get_sym_attr(s1, sym_index, 0)->dyn_index;
                 if (esym_index) {
@@ -336,7 +336,7 @@ void relocate(TCCState *s1, ElfW_Rel *rel, int type, unsigned char *ptr, addr_t 
                     add32le(ptr + 8, x);
                 }
                 else
-                    tcc_error_noabort("unexpected R_X86_64_TLSGD pattern");
+                    nooc_error_noabort("unexpected R_X86_64_TLSGD pattern");
             }
             break;
         case R_X86_64_TLSLD:
@@ -356,7 +356,7 @@ void relocate(TCCState *s1, ElfW_Rel *rel, int type, unsigned char *ptr, addr_t 
                     rel[1].r_info = ELFW(R_INFO)(0, R_X86_64_NONE);
                 }
                 else
-                    tcc_error_noabort("unexpected R_X86_64_TLSLD pattern");
+                    nooc_error_noabort("unexpected R_X86_64_TLSLD pattern");
             }
             break;
         case R_X86_64_DTPOFF32:
@@ -388,7 +388,7 @@ void relocate(TCCState *s1, ElfW_Rel *rel, int type, unsigned char *ptr, addr_t 
         case R_X86_64_NONE:
             break;
         case R_X86_64_RELATIVE:
-#ifdef TCC_TARGET_PE
+#ifdef NOOC_TARGET_PE
             add32le(ptr, val - s1->pe_imagebase);
 #endif
             /* do nothing */

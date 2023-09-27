@@ -1,4 +1,4 @@
-/* TCC ARM runtime EABI
+/* NOOC ARM runtime EABI
    Copyright (C) 2013 Thomas Preud'homme
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

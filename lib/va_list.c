@@ -11,7 +11,7 @@ enum __va_arg_type {
 };
 
 /* GCC compatible definition of va_list. */
-/*predefined by TCC (tcc_predefs.h):
+/*predefined by NOOC (nooc_predefs.h):
 typedef struct {
     unsigned int gp_offset;
     unsigned int fp_offset;

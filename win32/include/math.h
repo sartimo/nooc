@@ -240,7 +240,7 @@ extern "C" {
   extern int __cdecl __fpclassify (double);
   extern int __cdecl __fpclassifyl (long double);
 
-/* Implemented at tcc/tcc_libm.h
+/* Implemented at nooc/nooc_libm.h
 #define fpclassify(x) (sizeof (x) == sizeof (float) ? __fpclassifyf (x)	  \
   : sizeof (x) == sizeof (double) ? __fpclassify (x) \
   : __fpclassifyl (x))
@@ -268,7 +268,7 @@ extern "C" {
   extern int __cdecl __signbit (double);
   extern int __cdecl __signbitl (long double);
 
-/* Implemented at tcc/tcc_libm.h
+/* Implemented at nooc/nooc_libm.h
 #define signbit(x) (sizeof (x) == sizeof (float) ? __signbitf (x)	\
   : sizeof (x) == sizeof (double) ? __signbit (x)	\
   : __signbitl (x))
@@ -491,7 +491,7 @@ extern "C" {
  */
 
 /* Mini libm (inline __fpclassify*, __signbit* and variants) */
-#include "tcc/tcc_libm.h"
+#include "nooc/nooc_libm.h"
 
 #endif /* End _MATH_H_ */
 

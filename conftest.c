@@ -1,5 +1,5 @@
 /* ----------------------------------------------------------------------- */
-/* with -D C2STR: convert tccdefs.h to C-strings */
+/* with -D C2STR: convert noocdefs.h to C-strings */
 
 #if C2STR
 
@@ -8,14 +8,14 @@
 
 /* replace native host macros by compile-time versions */
 const char *platform_macros[] = {
-    "__i386__",             "TCC_TARGET_I386",
-    "__x86_64__",           "TCC_TARGET_X86_64",
-    "_WIN32",               "TCC_TARGET_PE",
-    "__arm__",              "TCC_TARGET_ARM",
-    "__ARM_EABI__",         "TCC_ARM_EABI",
-    "__aarch64__",          "TCC_TARGET_ARM64",
-    "__riscv",              "TCC_TARGET_RISCV64",
-    "__APPLE__",            "TCC_TARGET_MACHO",
+    "__i386__",             "NOOC_TARGET_I386",
+    "__x86_64__",           "NOOC_TARGET_X86_64",
+    "_WIN32",               "NOOC_TARGET_PE",
+    "__arm__",              "NOOC_TARGET_ARM",
+    "__ARM_EABI__",         "NOOC_ARM_EABI",
+    "__aarch64__",          "NOOC_TARGET_ARM64",
+    "__riscv",              "NOOC_TARGET_RISCV64",
+    "__APPLE__",            "NOOC_TARGET_MACHO",
     "__FreeBSD__",          "TARGETOS_FreeBSD",
     "__FreeBSD_kernel__",   "TARGETOS_FreeBSD_kernel",
     "__OpenBSD__",          "TARGETOS_OpenBSD",
@@ -289,7 +289,7 @@ int main(int argc, char *argv[])
 #if defined(__clang__)
             puts("clang");
 #elif defined(__TINYC__)
-            puts("tcc");
+            puts("nooc");
 #elif defined(_MSC_VER)
             puts("msvc");
 #elif defined(__GNUC__)

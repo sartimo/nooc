@@ -1,5 +1,5 @@
-#!/usr/local/bin/tcc -run
-#include <tcclib.h>
+#!/usr/local/bin/nooc -run
+#include <nooclib.h>
 
 int main()
 {

@@ -161,7 +161,7 @@ static pthread_spinlock_t bounds_spin;
 #define HAVE_TLS_FUNC          (1)
 #define HAVE_TLS_VAR           (0)
 #endif
-#if defined TCC_MUSL || defined __ANDROID__
+#if defined NOOC_MUSL || defined __ANDROID__
 # undef HAVE_CTYPE
 #endif
 #endif
@@ -194,12 +194,12 @@ static int (*sigaction_redir) (int signum, const struct sigaction *act,
 static int (*fork_redir) (void);
 #endif
 
-#define TCC_TYPE_NONE           (0)
-#define TCC_TYPE_MALLOC         (1)
-#define TCC_TYPE_CALLOC         (2)
-#define TCC_TYPE_REALLOC        (3)
-#define TCC_TYPE_MEMALIGN       (4)
-#define TCC_TYPE_STRDUP         (5)
+#define NOOC_TYPE_NONE           (0)
+#define NOOC_TYPE_MALLOC         (1)
+#define NOOC_TYPE_CALLOC         (2)
+#define NOOC_TYPE_REALLOC        (3)
+#define NOOC_TYPE_MEMALIGN       (4)
+#define NOOC_TYPE_STRDUP         (5)
 
 /* this pointer is generated when bound check is incorrect */
 #define INVALID_POINTER ((void *)(-2))
@@ -445,13 +445,13 @@ static unsigned long long bound_splay_delete;
 #define INCR_COUNT_SPLAY(x)
 #endif
 
-int tcc_backtrace(const char *fmt, ...);
+int nooc_backtrace(const char *fmt, ...);
 
 /* print a bound error message */
 #define bound_warning(...) \
     do {                                                 \
         WAIT_SEM ();                                     \
-        tcc_backtrace("^bcheck.c^BCHECK: " __VA_ARGS__); \
+        nooc_backtrace("^bcheck.c^BCHECK: " __VA_ARGS__); \
         POST_SEM ();                                     \
     } while (0)
 
@@ -465,7 +465,7 @@ int tcc_backtrace(const char *fmt, ...);
 #define bounds_loc(fp, ...) \
     do {                            \
         WAIT_SEM (); \
-        tcc_backtrace("^bcheck.c^\001" __VA_ARGS__); \
+        nooc_backtrace("^bcheck.c^\001" __VA_ARGS__); \
         POST_SEM (); \
     } while (0)
 
@@ -629,7 +629,7 @@ BOUND_PTR_INDIR(8)
 BOUND_PTR_INDIR(12)
 BOUND_PTR_INDIR(16)
 
-/* Needed when using ...libtcc1-usegcc=yes in lib/Makefile */
+/* Needed when using ...libnooc1-usegcc=yes in lib/Makefile */
 #if (defined(__GNUC__) && (__GNUC__ >= 6)) || defined(__clang__)
 /*
  * At least gcc 6.2 complains when __builtin_frame_address is used with
@@ -961,11 +961,11 @@ void __bound_init(size_t *p, int mode)
 #endif
     NO_CHECKING_SET(1);
 
-    print_warn_ptr_add = getenv ("TCC_BOUNDS_WARN_POINTER_ADD") != NULL;
-    print_calls = getenv ("TCC_BOUNDS_PRINT_CALLS") != NULL;
-    print_heap = getenv ("TCC_BOUNDS_PRINT_HEAP") != NULL;
-    print_statistic = getenv ("TCC_BOUNDS_PRINT_STATISTIC") != NULL;
-    never_fatal = getenv ("TCC_BOUNDS_NEVER_FATAL") != NULL;
+    print_warn_ptr_add = getenv ("NOOC_BOUNDS_WARN_POINTER_ADD") != NULL;
+    print_calls = getenv ("NOOC_BOUNDS_PRINT_CALLS") != NULL;
+    print_heap = getenv ("NOOC_BOUNDS_PRINT_HEAP") != NULL;
+    print_statistic = getenv ("NOOC_BOUNDS_PRINT_STATISTIC") != NULL;
+    never_fatal = getenv ("NOOC_BOUNDS_NEVER_FATAL") != NULL;
 
     INIT_SEM ();
 
@@ -973,7 +973,7 @@ void __bound_init(size_t *p, int mode)
     {
         void *addr = mode > 0 ? RTLD_DEFAULT : RTLD_NEXT;
 
-        /* tcc -run required RTLD_DEFAULT. Normal usage requires RTLD_NEXT,
+        /* nooc -run required RTLD_DEFAULT. Normal usage requires RTLD_NEXT,
            but using RTLD_NEXT with -run segfaults on MacOS in dyld as the
            generated code segment isn't registered with dyld and hence the
            caller image of dlsym isn't known to it */
@@ -1039,7 +1039,7 @@ void __bound_init(size_t *p, int mode)
             (unsigned long) __builtin_return_address(0);
         char line[1000];
 
-        /* Display exec name. Usefull when a lot of code is compiled with tcc */
+        /* Display exec name. Usefull when a lot of code is compiled with nooc */
         fp = fopen ("/proc/self/comm", "r");
         if (fp) {
             memset (exec, 0, sizeof(exec));
@@ -1185,7 +1185,7 @@ void __attribute__((destructor)) __bound_exit(void)
     dprintf(stderr, "%s, %s():\n", __FILE__, __FUNCTION__);
 
     if (inited) {
-#if !defined(_WIN32) && !defined(__APPLE__) && !defined TCC_MUSL && \
+#if !defined(_WIN32) && !defined(__APPLE__) && !defined NOOC_MUSL && \
     !defined(__OpenBSD__) && !defined(__FreeBSD__) && !defined(__NetBSD__) && \
     !defined(__ANDROID__)
         if (print_heap) {
@@ -1511,7 +1511,7 @@ void *__bound_malloc(size_t size, const void *caller)
         if (ptr) {
             tree = splay_insert ((size_t) ptr, size ? size : size + 1, tree);
             if (tree && tree->start == (size_t) ptr)
-                tree->type = TCC_TYPE_MALLOC;
+                tree->type = NOOC_TYPE_MALLOC;
         }
         POST_SEM ();
     }
@@ -1550,7 +1550,7 @@ void *__bound_memalign(size_t size, size_t align, const void *caller)
         if (ptr) {
             tree = splay_insert((size_t) ptr, size ? size : size + 1, tree);
             if (tree && tree->start == (size_t) ptr)
-                tree->type = TCC_TYPE_MEMALIGN;
+                tree->type = NOOC_TYPE_MEMALIGN;
         }
         POST_SEM ();
     }
@@ -1630,7 +1630,7 @@ void *__bound_realloc(void *ptr, size_t size, const void *caller)
         if (new_ptr) {
             tree = splay_insert ((size_t) new_ptr, size ? size : size + 1, tree);
             if (tree && tree->start == (size_t) new_ptr)
-                tree->type = TCC_TYPE_REALLOC;
+                tree->type = NOOC_TYPE_REALLOC;
         }
         POST_SEM ();
     }
@@ -1673,7 +1673,7 @@ void *__bound_calloc(size_t nmemb, size_t size)
             INCR_COUNT(bound_calloc_count);
             tree = splay_insert ((size_t) ptr, size ? size : size + 1, tree);
             if (tree && tree->start == (size_t) ptr)
-                tree->type = TCC_TYPE_CALLOC;
+                tree->type = NOOC_TYPE_CALLOC;
             POST_SEM ();
         }
     }
@@ -2023,7 +2023,7 @@ char *__bound_strdup(const char *s)
             WAIT_SEM ();
             tree = splay_insert((size_t)new, p - s, tree);
             if (tree && tree->start == (size_t) new)
-                tree->type = TCC_TYPE_STRDUP;
+                tree->type = NOOC_TYPE_STRDUP;
             POST_SEM ();
         }
         memcpy (new, s, p - s);
@@ -2079,7 +2079,7 @@ char *__bound_strdup(const char *s)
        Addison-Wesley, 1993, pp 367-375
 */
 
-/* Code adapted for tcc */
+/* Code adapted for nooc */
 
 #define compare(start,tstart,tsize) (start < tstart ? -1 : \
                                      start >= tstart+tsize  ? 1 : 0)
@@ -2227,7 +2227,7 @@ static Tree * splay_insert(size_t addr, size_t size, Tree * t)
         }
         new->start = addr;
         new->size = size;
-        new->type = TCC_TYPE_NONE;
+        new->type = NOOC_TYPE_NONE;
         new->is_invalid = 0;
     }
     return new;

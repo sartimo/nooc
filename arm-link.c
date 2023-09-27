@@ -1,6 +1,6 @@
 #ifdef TARGET_DEFS_ONLY
 
-#define EM_TCC_TARGET EM_ARM
+#define EM_NOOC_TARGET EM_ARM
 
 /* relocation type for 32 bit data relocation */
 #define R_DATA_32   R_ARM_ABS32
@@ -25,7 +25,7 @@ enum float_abi {
 
 #else /* !TARGET_DEFS_ONLY */
 
-#include "tcc.h"
+#include "nooc.h"
 
 #ifdef NEED_RELOC_TYPE
 /* Returns 1 for a code relocation, 0 for a data relocation. For unknown
@@ -66,7 +66,7 @@ int code_reloc (int reloc_type)
 }
 
 /* Returns an enumerator to describe whether and when the relocation needs a
-   GOT and/or PLT entry to be created. See tcc.h for a description of the
+   GOT and/or PLT entry to be created. See nooc.h for a description of the
    different values. */
 int gotplt_entry_type (int reloc_type)
 {
@@ -108,7 +108,7 @@ int gotplt_entry_type (int reloc_type)
 }
 
 #ifdef NEED_BUILD_GOT
-ST_FUNC unsigned create_plt_entry(TCCState *s1, unsigned got_offset, struct sym_attr *attr)
+ST_FUNC unsigned create_plt_entry(NOOCState *s1, unsigned got_offset, struct sym_attr *attr)
 {
     Section *plt = s1->plt;
     uint8_t *p;
@@ -142,7 +142,7 @@ ST_FUNC unsigned create_plt_entry(TCCState *s1, unsigned got_offset, struct sym_
 
 /* relocate the PLT: compute addresses and offsets in the PLT now that final
    address for PLT and GOT are known (see fill_program_header) */
-ST_FUNC void relocate_plt(TCCState *s1)
+ST_FUNC void relocate_plt(NOOCState *s1)
 {
     uint8_t *p, *p_end;
 
@@ -179,7 +179,7 @@ ST_FUNC void relocate_plt(TCCState *s1)
 #endif
 #endif
 
-void relocate(TCCState *s1, ElfW_Rel *rel, int type, unsigned char *ptr, addr_t addr, addr_t val)
+void relocate(NOOCState *s1, ElfW_Rel *rel, int type, unsigned char *ptr, addr_t addr, addr_t val)
 {
     ElfW(Sym) *sym;
     int sym_index, esym_index;
@@ -202,7 +202,7 @@ void relocate(TCCState *s1, ElfW_Rel *rel, int type, unsigned char *ptr, addr_t 
                 if (x & 0x800000)
                     x -= 0x1000000;
                 x <<= 2;
-                blx_avail = (TCC_CPU_VERSION >= 5);
+                blx_avail = (NOOC_CPU_VERSION >= 5);
                 is_thumb = val & 1;
                 is_bl = (*(unsigned *) ptr) >> 24 == 0xeb;
                 is_call = (type == R_ARM_CALL || (type == R_ARM_PC24 && is_bl));
@@ -214,7 +214,7 @@ void relocate(TCCState *s1, ElfW_Rel *rel, int type, unsigned char *ptr, addr_t 
                 h = x & 2;
                 th_ko = (x & 3) && (!blx_avail || !is_call);
                 if (th_ko || x >= 0x2000000 || x < -0x2000000)
-                    tcc_error_noabort("can't relocate value at %x,%d",addr, type);
+                    nooc_error_noabort("can't relocate value at %x,%d",addr, type);
                 x >>= 2;
                 x &= 0xffffff;
                 /* Only reached if blx is avail and it is a call */
@@ -303,7 +303,7 @@ void relocate(TCCState *s1, ElfW_Rel *rel, int type, unsigned char *ptr, addr_t 
                      - instruction must be a call (bl) or a jump to PLT */
                 if (!to_thumb || x >= 0x1000000 || x < -0x1000000)
                     if (to_thumb || (val & 2) || (!is_call && !to_plt))
-                        tcc_error_noabort("can't relocate value at %x,%d",addr, type);
+                        nooc_error_noabort("can't relocate value at %x,%d",addr, type);
 
                 /* Compute and store final offset */
                 s = (x >> 24) & 1;
@@ -374,13 +374,13 @@ void relocate(TCCState *s1, ElfW_Rel *rel, int type, unsigned char *ptr, addr_t 
                 x = (x * 2) / 2;
                 x += val - addr;
                 if((x^(x>>1))&0x40000000)
-                    tcc_error_noabort("can't relocate value at %x,%d",addr, type);
+                    nooc_error_noabort("can't relocate value at %x,%d",addr, type);
                 (*(int *)ptr) |= x & 0x7fffffff;
             }
             return;
         case R_ARM_ABS32:
         case R_ARM_TARGET1:
-            if (s1->output_type & TCC_OUTPUT_DYN) {
+            if (s1->output_type & NOOC_OUTPUT_DYN) {
                 esym_index = get_sym_attr(s1, sym_index, 0)->dyn_index;
                 qrel->r_offset = rel->r_offset;
                 if (esym_index) {
@@ -429,7 +429,7 @@ void relocate(TCCState *s1, ElfW_Rel *rel, int type, unsigned char *ptr, addr_t 
                on a certain symbol (like for exception handling under EABI).  */
             return;
         case R_ARM_RELATIVE:
-#ifdef TCC_TARGET_PE
+#ifdef NOOC_TARGET_PE
             add32le(ptr, val - s1->pe_imagebase);
 #endif
             /* do nothing */

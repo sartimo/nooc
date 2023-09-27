@@ -1,6 +1,6 @@
 #ifdef TARGET_DEFS_ONLY
 
-#define EM_TCC_TARGET EM_386
+#define EM_NOOC_TARGET EM_386
 
 /* relocation type for 32 bit data relocation */
 #define R_DATA_32   R_386_32
@@ -20,7 +20,7 @@
 
 #else /* !TARGET_DEFS_ONLY */
 
-#include "tcc.h"
+#include "nooc.h"
 
 #ifdef NEED_RELOC_TYPE
 /* Returns 1 for a code relocation, 0 for a data relocation. For unknown
@@ -53,7 +53,7 @@ int code_reloc (int reloc_type)
 }
 
 /* Returns an enumerator to describe whether and when the relocation needs a
-   GOT and/or PLT entry to be created. See tcc.h for a description of the
+   GOT and/or PLT entry to be created. See nooc.h for a description of the
    different values. */
 int gotplt_entry_type (int reloc_type)
 {
@@ -92,7 +92,7 @@ int gotplt_entry_type (int reloc_type)
 }
 
 #ifdef NEED_BUILD_GOT
-ST_FUNC unsigned create_plt_entry(TCCState *s1, unsigned got_offset, struct sym_attr *attr)
+ST_FUNC unsigned create_plt_entry(NOOCState *s1, unsigned got_offset, struct sym_attr *attr)
 {
     Section *plt = s1->plt;
     uint8_t *p;
@@ -100,7 +100,7 @@ ST_FUNC unsigned create_plt_entry(TCCState *s1, unsigned got_offset, struct sym_
     unsigned plt_offset, relofs;
 
     /* on i386 if we build a DLL, we add a %ebx offset */
-    if (s1->output_type & TCC_OUTPUT_DYN)
+    if (s1->output_type & NOOC_OUTPUT_DYN)
         modrm = 0xa3;
     else
         modrm = 0x25;
@@ -138,7 +138,7 @@ ST_FUNC unsigned create_plt_entry(TCCState *s1, unsigned got_offset, struct sym_
 
 /* relocate the PLT: compute addresses and offsets in the PLT now that final
    address for PLT and GOT are known (see fill_program_header) */
-ST_FUNC void relocate_plt(TCCState *s1)
+ST_FUNC void relocate_plt(NOOCState *s1)
 {
     uint8_t *p, *p_end;
 
@@ -148,7 +148,7 @@ ST_FUNC void relocate_plt(TCCState *s1)
     p = s1->plt->data;
     p_end = p + s1->plt->data_offset;
 
-    if (!(s1->output_type & TCC_OUTPUT_DYN) && p < p_end) {
+    if (!(s1->output_type & NOOC_OUTPUT_DYN) && p < p_end) {
         add32le(p + 2, s1->got->sh_addr);
         add32le(p + 8, s1->got->sh_addr);
         p += 16;
@@ -171,7 +171,7 @@ ST_FUNC void relocate_plt(TCCState *s1)
 #endif
 #endif
 
-void relocate(TCCState *s1, ElfW_Rel *rel, int type, unsigned char *ptr, addr_t addr, addr_t val)
+void relocate(NOOCState *s1, ElfW_Rel *rel, int type, unsigned char *ptr, addr_t addr, addr_t val)
 {
     int sym_index, esym_index;
 
@@ -179,7 +179,7 @@ void relocate(TCCState *s1, ElfW_Rel *rel, int type, unsigned char *ptr, addr_t 
 
     switch (type) {
         case R_386_32:
-            if (s1->output_type & TCC_OUTPUT_DYN) {
+            if (s1->output_type & NOOC_OUTPUT_DYN) {
                 esym_index = get_sym_attr(s1, sym_index, 0)->dyn_index;
                 qrel->r_offset = rel->r_offset;
                 if (esym_index) {
@@ -194,7 +194,7 @@ void relocate(TCCState *s1, ElfW_Rel *rel, int type, unsigned char *ptr, addr_t 
             add32le(ptr, val);
             return;
         case R_386_PC32:
-            if (s1->output_type == TCC_OUTPUT_DLL) {
+            if (s1->output_type == NOOC_OUTPUT_DLL) {
                 /* DLL relocation */
                 esym_index = get_sym_attr(s1, sym_index, 0)->dyn_index;
                 if (esym_index) {
@@ -225,19 +225,19 @@ void relocate(TCCState *s1, ElfW_Rel *rel, int type, unsigned char *ptr, addr_t 
             add32le(ptr, get_sym_attr(s1, sym_index, 0)->got_offset);
             return;
         case R_386_16:
-            if (s1->output_format != TCC_OUTPUT_FORMAT_BINARY) {
+            if (s1->output_format != NOOC_OUTPUT_FORMAT_BINARY) {
             output_file:
-                tcc_error_noabort("can only produce 16-bit binary files");
+                nooc_error_noabort("can only produce 16-bit binary files");
             }
             write16le(ptr, read16le(ptr) + val);
             return;
         case R_386_PC16:
-            if (s1->output_format != TCC_OUTPUT_FORMAT_BINARY)
+            if (s1->output_format != NOOC_OUTPUT_FORMAT_BINARY)
                 goto output_file;
             write16le(ptr, read16le(ptr) + val - addr);
             return;
         case R_386_RELATIVE:
-#ifdef TCC_TARGET_PE
+#ifdef NOOC_TARGET_PE
             add32le(ptr, val - s1->pe_imagebase);
 #endif
             /* do nothing */
@@ -274,7 +274,7 @@ void relocate(TCCState *s1, ElfW_Rel *rel, int type, unsigned char *ptr, addr_t 
                     add32le(ptr + 5, -x);
                 }
                 else
-                    tcc_error_noabort("unexpected R_386_TLS_GD pattern");
+                    nooc_error_noabort("unexpected R_386_TLS_GD pattern");
             }
             return;
         case R_386_TLS_LDM:
@@ -297,7 +297,7 @@ void relocate(TCCState *s1, ElfW_Rel *rel, int type, unsigned char *ptr, addr_t 
                     rel[1].r_info = ELFW(R_INFO)(0, R_386_NONE);
                 }
                 else
-                    tcc_error_noabort("unexpected R_386_TLS_LDM pattern");
+                    nooc_error_noabort("unexpected R_386_TLS_LDM pattern");
             }
             return;
         case R_386_TLS_LDO_32:

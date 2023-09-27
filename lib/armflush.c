@@ -1,18 +1,18 @@
 /* armflush.c - flush the instruction cache
 
-   __clear_cache is used in tccrun.c,  It is a built-in
-   intrinsic with gcc.  However tcc in order to compile
+   __clear_cache is used in noocrun.c,  It is a built-in
+   intrinsic with gcc.  However nooc in order to compile
    itself needs this function */
 
 #ifdef __TINYC__
 
 /* syscall wrapper */
-unsigned _tccsyscall(unsigned syscall_nr, ...);
+unsigned _noocsyscall(unsigned syscall_nr, ...);
 
-/* arm-tcc supports only fake asm currently */
+/* arm-nooc supports only fake asm currently */
 __asm__(
-    ".global _tccsyscall\n"
-    "_tccsyscall:\n"
+    ".global _noocsyscall\n"
+    "_noocsyscall:\n"
     "push    {r7, lr}\n\t"
     "mov     r7, r0\n\t"
     "mov     r0, r1\n\t"
@@ -31,7 +31,7 @@ __asm__(
 #define __ARM_NR_BASE           (__NR_SYSCALL_BASE+0x0f0000)
 #define __ARM_NR_cacheflush     (__ARM_NR_BASE+2)
 
-#define syscall _tccsyscall
+#define syscall _noocsyscall
 
 #else
 
@@ -42,10 +42,10 @@ __asm__(
 
 #endif
 
-/* Flushing for tccrun */
+/* Flushing for noocrun */
 void __clear_cache(void *beginning, void *end)
 {
 /* __ARM_NR_cacheflush is kernel private and should not be used in user space.
- * However, there is no ARM asm parser in tcc so we use it for now */
+ * However, there is no ARM asm parser in nooc so we use it for now */
     syscall(__ARM_NR_cacheflush, beginning, end, 0);
 }

@@ -2519,7 +2519,7 @@ typedef Elf32_Addr Elf32_Conflict;
 #define R_ARM_MOVT_PREL 46  /* PC relative (MOVT).  */
 #define R_ARM_THM_MOVW_ABS_NC	47
 #define R_ARM_THM_MOVT_ABS	48
-/* Values from 49 to 89 are not yet used/handled by tcc. */
+/* Values from 49 to 89 are not yet used/handled by nooc. */
 #define R_ARM_TLS_GOTDESC	90
 #define R_ARM_TLS_CALL		91
 #define R_ARM_TLS_DESCSEQ	92

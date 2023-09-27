@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# tcc configure script (c) 2003 Fabrice Bellard
+# nooc configure script (c) 2003 Fabrice Bellard
 
 # set temporary file name
 # if test ! -z "$TMPDIR" ; then
@@ -11,7 +11,7 @@
 #     TMPDIR1="/tmp"
 # fi
 #
-# bashism: TMPN="${TMPDIR1}/tcc-conf-${RANDOM}-$$-${RANDOM}.c"
+# bashism: TMPN="${TMPDIR1}/nooc-conf-${RANDOM}-$$-${RANDOM}.c"
 
 TMPN="./conftest-$$"
 TMPH=$TMPN.h
@@ -21,7 +21,7 @@ prefix=""
 execprefix=""
 bindir=""
 libdir=""
-tccdir=""
+noocdir=""
 includedir=""
 mandir=""
 infodir=""
@@ -34,13 +34,13 @@ mingw32="no"
 LIBSUF=".a"
 EXESUF=""
 DLLSUF=".so"
-tcc_usrinclude=""
-tcc_sysincludepaths=""
-tcc_libpaths=""
-tcc_crtprefix=""
-tcc_elfinterp=""
+nooc_usrinclude=""
+nooc_sysincludepaths=""
+nooc_libpaths=""
+nooc_crtprefix=""
+nooc_elfinterp=""
 triplet=
-tcc_lddir=
+nooc_lddir=
 confvars=
 suggest="yes"
 gcc_major=0
@@ -68,7 +68,7 @@ for opt do
   ;;
   --exec-prefix=*) execprefix=`echo $opt | cut -d '=' -f 2-`
   ;;
-  --tccdir=*) tccdir=`echo $opt | cut -d '=' -f 2-`
+  --noocdir=*) noocdir=`echo $opt | cut -d '=' -f 2-`
   ;;
   --bindir=*) bindir=`echo $opt | cut -d '=' -f 2-`
   ;;
@@ -102,13 +102,13 @@ for opt do
   ;;
   --extra-libs=*) extralibs="${opt#--extra-libs=}"
   ;;
-  --sysincludepaths=*) tcc_sysincludepaths=`echo $opt | cut -d '=' -f 2-`
+  --sysincludepaths=*) nooc_sysincludepaths=`echo $opt | cut -d '=' -f 2-`
   ;;
-  --libpaths=*) tcc_libpaths=`echo $opt | cut -d '=' -f 2-`
+  --libpaths=*) nooc_libpaths=`echo $opt | cut -d '=' -f 2-`
   ;;
-  --crtprefix=*) tcc_crtprefix=`echo $opt | cut -d '=' -f 2-`
+  --crtprefix=*) nooc_crtprefix=`echo $opt | cut -d '=' -f 2-`
   ;;
-  --elfinterp=*) tcc_elfinterp=`echo $opt | cut -d '=' -f 2-`
+  --elfinterp=*) nooc_elfinterp=`echo $opt | cut -d '=' -f 2-`
   ;;
   --triplet=*) triplet=`echo $opt | cut -d '=' -f 2-`
   ;;
@@ -130,7 +130,7 @@ for opt do
   ;;
   --with-selinux) confvars="$confvars selinux"
   ;;
-  --tcc-switches=*) tcc_switches=`echo $opt | cut -d '=' -f 2-`
+  --nooc-switches=*) nooc_switches=`echo $opt | cut -d '=' -f 2-`
   ;;
   --config-mingw32*) mingw32=$(echo "$opt=yes" | cut -d '=' -f 2)
   ;;
@@ -155,10 +155,10 @@ Standard options:
 			   [same as prefix]
   --bindir=DIR             user executables in DIR [EPREFIX/bin]
   --libdir=DIR             object code libraries in DIR [EPREFIX/lib]
-  --tccdir=DIR             installation directory [EPREFIX/lib/tcc]
+  --noocdir=DIR             installation directory [EPREFIX/lib/nooc]
   --includedir=DIR         C header files in DIR [PREFIX/include]
   --sharedir=DIR           documentation root DIR [PREFIX/share]
-  --docdir=DIR             documentation in DIR [SHAREDIR/doc/tcc]
+  --docdir=DIR             documentation in DIR [SHAREDIR/doc/nooc]
   --mandir=DIR             man documentation in DIR [SHAREDIR/man]
   --infodir=DIR            info documentation in DIR [SHAREDIR/info]
 
@@ -171,11 +171,11 @@ Advanced options (experts only):
   --extra-ldflags=         specify linker options [$LDFLAGS]
 
   --debug                  include debug info with resulting binaries
-  --disable-static         make libtcc.so instead of libtcc.a
-  --enable-static          make libtcc.a instead of libtcc.dll (win32)
-  --disable-rpath          disable use of -rpath with libtcc.so
-  --with-libgcc            use libgcc_s.so.1 instead of libtcc1.a
-  --with-selinux           use mmap for executable memory (tcc -run)
+  --disable-static         make libnooc.so instead of libnooc.a
+  --enable-static          make libnooc.a instead of libnooc.dll (win32)
+  --disable-rpath          disable use of -rpath with libnooc.so
+  --with-libgcc            use libgcc_s.so.1 instead of libnooc1.a
+  --with-selinux           use mmap for executable memory (nooc -run)
   --enable-cross           build cross compilers (see also 'make help')
 
   --sysincludepaths=...    specify system include paths, colon separated
@@ -183,13 +183,13 @@ Advanced options (experts only):
   --crtprefix=...          specify locations of crt?.o, colon separated
   --elfinterp=...          specify elf interpreter
   --triplet=...            specify system library/include directory triplet
-  --tcc-switches=...       specify implicit switches passed to tcc
+  --nooc-switches=...       specify implicit switches passed to nooc
 
   --config-uClibc,-musl    enable system specific configurations
   --config-mingw32         build on windows using msys, busybox, etc.
   --config-backtrace=no    disable stack backtraces (with -run or -bt)
   --config-bcheck=no       disable bounds checker (-b)
-  --config-predefs=no      do not compile tccdefs.h, instead just include
+  --config-predefs=no      do not compile noocdefs.h, instead just include
   --config-new_macho=no|yes Force apple object format (autodetect osx <= 10)
   --config-codesign        Use codesign on apple to sign executables
   --dwarf=x                Use dwarf debug info instead of stabs (x=2..5)
@@ -324,7 +324,7 @@ case $targetos in
     if test -z "$build_cross"; then
       cc=`command -v cc`
       cc=`readlink $cc || echo clang`
-      tcc_usrinclude="`xcrun --show-sdk-path`/usr/include"
+      nooc_usrinclude="`xcrun --show-sdk-path`/usr/include"
       if test "${confvars%new_macho*}" = "${confvars}"; then
           # if new_macho was not specified and (known) ver <= 10, use old (=no)
           osxver=$(sw_vers -productVersion 2>/dev/null)  # X.Y.Z
@@ -332,7 +332,7 @@ case $targetos in
           [ "${osxver:-11}" -ge 11 ] || confvars="$confvars new_macho=no"
       fi
     fi
-    # on OSX M1 with --cpu=x86_64, build a tcc to run under rosetta entirely
+    # on OSX M1 with --cpu=x86_64, build a nooc to run under rosetta entirely
     if test "$cpu" = "x86_64" -a "$cpu_sys" = "arm64"; then
         CFLAGS="$CFLAGS -arch $cpu"
         LDFLAGS="$LDFLAGS -arch $cpu"
@@ -359,21 +359,21 @@ case $targetos in
       default triplet "${cpu_set}-linux-android"
     fi
     test "${cpu%64}" != "${cpu}" && S="64" || S=""
-    default tcc_sysincludepaths "{B}/include:{R}/include:{R}/include/${triplet}"
-    default tcc_libpaths "{B}:{R}/lib:/system/lib${S}"
-    default tcc_crtprefix "{R}/lib"
-    default tcc_elfinterp "/system/bin/linker${S}"
-    default tcc_switches "-Wl,-rpath=$sysroot/lib,-section-alignment=0x1000"
+    default nooc_sysincludepaths "{B}/include:{R}/include:{R}/include/${triplet}"
+    default nooc_libpaths "{B}:{R}/lib:/system/lib${S}"
+    default nooc_crtprefix "{R}/lib"
+    default nooc_elfinterp "/system/bin/linker${S}"
+    default nooc_switches "-Wl,-rpath=$sysroot/lib,-section-alignment=0x1000"
     ;;
   WIN32)
     mingw32="yes"
     confvars="$confvars WIN32"
-    default prefix "C:/Program Files/tcc"
-    default tccdir "${prefix}"
-    default bindir "${tccdir}"
-    default docdir "${tccdir}/doc"
-    default libdir "${tccdir}/libtcc"
-    test "$tccdir" = "$bindir" && tccdir_auto="yes"
+    default prefix "C:/Program Files/nooc"
+    default noocdir "${prefix}"
+    default bindir "${noocdir}"
+    default docdir "${noocdir}/doc"
+    default libdir "${noocdir}/libnooc"
+    test "$noocdir" = "$bindir" && noocdir_auto="yes"
     LIBSUF=".lib"
     EXESUF=".exe"
     DLLSUF=".dll"
@@ -390,7 +390,7 @@ if test "$mingw32" = "no"; then
   default execprefix   "${prefix}"
   default libdir       "${execprefix}/lib"
   default bindir       "${execprefix}/bin"
-  default tccdir       "${libdir}/tcc"
+  default noocdir       "${libdir}/nooc"
   default includedir   "${prefix}/include"
   default sharedir     "${prefix}/share"
   default docdir       "${sharedir}/doc"
@@ -430,7 +430,7 @@ if test -z "$build_cross"; then
       if test -z "$triplet"; then
         if test $cpu = "x86_64" -o $cpu = "arm64" -o $cpu = "riscv64" ; then
           if test -f "/usr/lib64/crti.o" ; then
-            tcc_lddir="lib64"
+            nooc_lddir="lib64"
           fi
         fi
       fi
@@ -445,8 +445,8 @@ if test -z "$build_cross"; then
   fi
 else
   # can only make guesses about compiler and target
-  if test "${cc%tcc*}" != "$cc"; then
-    cc_name="tcc"
+  if test "${cc%nooc*}" != "$cc"; then
+    cc_name="nooc"
   elif test "${cc%clang*}" != "$cc"; then
     cc_name="clang"
   fi
@@ -480,7 +480,7 @@ if test "$cpu" = "arm"; then
 fi
 
 # a final configuration tuning
-if test "$cc_name" != "tcc"; then
+if test "$cc_name" != "nooc"; then
   OPT1="-Wdeclaration-after-statement -fno-strict-aliasing"
   # we want -Wno- but gcc does not always reject unknown -Wno- options
   OPT2="-Wpointer-sign -Wsign-compare -Wunused-result -Wformat-truncation"
@@ -499,31 +499,31 @@ if test "$cc_name" != "tcc"; then
   # cat cc_msg.txt
   # echo $CFLAGS
   rm -f cc_msg.txt a.out
-else # cc is tcc
+else # cc is nooc
   test "$ar_set" || ar="$cc -ar"
 fi
 
 fcho() { if test -n "$2"; then echo "$1$2"; fi }
 
 fcho "Binary directory    " "$bindir"
-fcho "TinyCC directory    " "$tccdir"
+fcho "TinyCC directory    " "$noocdir"
 fcho "Library directory   " "$libdir"
 fcho "Include directory   " "$includedir"
 fcho "Manual directory    " "$mandir"
 fcho "Info directory      " "$infodir"
 fcho "Doc directory       " "$docdir"
 fcho "Target root prefix  " "$sysroot"
-fcho "/usr/include dir    " "$tcc_usrinclude"
+fcho "/usr/include dir    " "$nooc_usrinclude"
 echo "Source path         $source_path"
 echo "C compiler          $cc ($gcc_major.$gcc_minor)"
 echo "Target OS           $targetos"
 echo "CPU                 $cpu"
 fcho "Triplet             " "$triplet"
-fcho "Libs                " "$tcc_libpaths"
-fcho "Sysinclude          " "$tcc_sysincludepaths"
-fcho "Crt                 " "$tcc_crtprefix"
-fcho "Elfinterp           " "$tcc_elfinterp"
-fcho "Switches            " "$tcc_switches"
+fcho "Libs                " "$nooc_libpaths"
+fcho "Sysinclude          " "$nooc_sysincludepaths"
+fcho "Crt                 " "$nooc_crtprefix"
+fcho "Elfinterp           " "$nooc_elfinterp"
+fcho "Switches            " "$nooc_switches"
 fcho "Config              " "${confvars# }"
 echo "Creating config.mak and config.h"
 
@@ -531,7 +531,7 @@ cat >config.mak <<EOF
 # Automatically generated by configure - do not modify
 prefix=$prefix
 bindir=\$(DESTDIR)$bindir
-tccdir=\$(DESTDIR)$tccdir
+noocdir=\$(DESTDIR)$noocdir
 libdir=\$(DESTDIR)$libdir
 includedir=\$(DESTDIR)$includedir
 mandir=\$(DESTDIR)$mandir
@@ -570,17 +570,17 @@ print_mak() {
 echo "/* Automatically generated by configure - do not modify */" > $TMPH
 
 print_inc CONFIG_SYSROOT "$sysroot"
-test "$tccdir_auto" = "yes" || print_inc CONFIG_TCCDIR "$tccdir"
+test "$noocdir_auto" = "yes" || print_inc CONFIG_NOOCDIR "$noocdir"
 print_inc DWARF_VERSION "$dwarf" num
-print_mak CONFIG_USR_INCLUDE "$tcc_usrinclude"
-print_mak CONFIG_TCC_SYSINCLUDEPATHS "$tcc_sysincludepaths"
-print_mak CONFIG_TCC_LIBPATHS "$tcc_libpaths"
-print_mak CONFIG_TCC_CRTPREFIX "$tcc_crtprefix"
-print_mak CONFIG_TCC_ELFINTERP "$tcc_elfinterp"
-print_mak CONFIG_TCC_SWITCHES "$tcc_switches"
-print_mak CONFIG_LDDIR "$tcc_lddir"
+print_mak CONFIG_USR_INCLUDE "$nooc_usrinclude"
+print_mak CONFIG_NOOC_SYSINCLUDEPATHS "$nooc_sysincludepaths"
+print_mak CONFIG_NOOC_LIBPATHS "$nooc_libpaths"
+print_mak CONFIG_NOOC_CRTPREFIX "$nooc_crtprefix"
+print_mak CONFIG_NOOC_ELFINTERP "$nooc_elfinterp"
+print_mak CONFIG_NOOC_SWITCHES "$nooc_switches"
+print_mak CONFIG_LDDIR "$nooc_lddir"
 print_mak CONFIG_TRIPLET "$triplet"
-print_mak TCC_CPU_VERSION "$cpuver" num
+print_mak NOOC_CPU_VERSION "$cpuver" num
 
 echo "ARCH=$cpu" >> config.mak
 echo "TARGETOS=$targetos" >> config.mak
@@ -595,11 +595,11 @@ for v in $confvars ; do
     echo "CONFIG_$v" >> config.mak
   fi
 done
-print_inc CONFIG_TCC_PREDEFS "$predefs" num
+print_inc CONFIG_NOOC_PREDEFS "$predefs" num
 
 version=`head $source_path/VERSION`
 echo "VERSION = $version" >> config.mak
-echo "#define TCC_VERSION \"$version\"" >> $TMPH
+echo "#define NOOC_VERSION \"$version\"" >> $TMPH
 echo "@set VERSION $version" > config.texi
 
 if test "$source_path_used" = "yes" ; then

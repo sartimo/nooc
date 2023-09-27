@@ -169,7 +169,7 @@ do
 		#echo ".syntax unified" > a.s
 		err="`mktemp --suffix=-stderr.log`"
 		as_object="${state}/as-$s $args.o"
-		tcc_object="${state}/tcc-$s $args.o"
+		nooc_object="${state}/nooc-$s $args.o"
 		expected="${state}/expected-$s $args"
 		got="${state}/got-$s $args"
 		if echo "$s $args" | "${CROSS_COMPILE}as" -mlittle-endian ${as_opts} -o "${as_object}" - 2>"${err}"
@@ -180,18 +180,18 @@ do
 			"${CROSS_COMPILE}objdump" -S "${as_object}" |grep "^[ ]*0:" >"${expected}"
 
 			#echo '__asm__("'"$s ${args}"'");' > "${csource}"
-			if echo '__asm__("'"$s ${args}"'");'| ${TCC} -o "${tcc_object}" -c -
+			if echo '__asm__("'"$s ${args}"'");'| ${NOOC} -o "${nooc_object}" -c -
 			then
-				"${CROSS_COMPILE}objdump" -S "${tcc_object}" |grep "^[ ]*0:" >"${got}"
+				"${CROSS_COMPILE}objdump" -S "${nooc_object}" |grep "^[ ]*0:" >"${got}"
 				if diff -u "${got}" "${expected}"
 				then
 					touch "${state}/ok-$s $args"
 				else
-					echo "warning: '$s $args' did not work in tcc (see above)">&2
+					echo "warning: '$s $args' did not work in nooc (see above)">&2
 				fi
 			else
-				rm -f "${tcc_object}"
-				echo "warning: '$s $args' did not work in tcc">&2
+				rm -f "${nooc_object}"
+				echo "warning: '$s $args' did not work in nooc">&2
 			fi
 			ok=1
 		else # GNU as can't do it either--so we don't care

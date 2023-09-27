@@ -1,4 +1,4 @@
-// for libtcc1, avoid including files that are not part of tcc
+// for libnooc1, avoid including files that are not part of nooc
 // #include <stdint.h>
 #define uint8_t unsigned char
 #define uint16_t unsigned short
@@ -119,7 +119,7 @@ ATOMIC_GEN(uint64_t, 8, "q")
 #ifdef __TINYC__
 #define ATOMIC(x)      __atomic_##x
 #else
-#define ATOMIC(x)      __tcc_atomic_##x
+#define ATOMIC(x)      __nooc_atomic_##x
 #endif
 
 void ATOMIC(signal_fence) (int memorder)
@@ -160,7 +160,7 @@ bool ATOMIC(is_lock_free) (unsigned long size, const volatile void *ptr)
 }
 
 #ifndef __TINYC__
-void __atomic_signal_fence(int memorder) __attribute__((alias("__tcc_atomic_signal_fence")));
-void __atomic_thread_fence(int memorder) __attribute__((alias("__tcc_atomic_thread_fence")));
-bool __atomic_is_lock_free(unsigned long size, const volatile void *ptr) __attribute__((alias("__tcc_atomic_is_lock_free")));
+void __atomic_signal_fence(int memorder) __attribute__((alias("__nooc_atomic_signal_fence")));
+void __atomic_thread_fence(int memorder) __attribute__((alias("__nooc_atomic_thread_fence")));
+bool __atomic_is_lock_free(unsigned long size, const volatile void *ptr) __attribute__((alias("__nooc_atomic_is_lock_free")));
 #endif

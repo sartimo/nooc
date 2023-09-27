@@ -1,11 +1,11 @@
 /* ------------------------------------------------------------- */
 /* for linking rt_printline and the signal/exception handler
-   from tccrun.c into executables. */
+   from noocrun.c into executables. */
 
-#define CONFIG_TCC_BACKTRACE_ONLY
+#define CONFIG_NOOC_BACKTRACE_ONLY
 #define ONE_SOURCE 1
-#define pstrcpy tcc_pstrcpy
-#include "../tccrun.c"
+#define pstrcpy nooc_pstrcpy
+#include "../noocrun.c"
 
 int (*__rt_error)(void*, void*, const char *, va_list);
 __attribute__((weak)) void __bound_checking_lock(void);

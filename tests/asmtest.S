@@ -813,7 +813,7 @@ int $0x10
     /* Newer gas assemble 'str %rdx' as 'str %edx', based on the observation
        that the 16bit value of the task register is zero-extended into the
        destination anyway, and hence storing into %edx is the same as storing
-       into %rdx.  TCC doesn't do that micro-optimization, hence just store
+       into %rdx.  NOOC doesn't do that micro-optimization, hence just store
        into the 32bit reg as well.  */
     str %edx
     str %r9d
@@ -947,7 +947,7 @@ overrideme:
     movq %rdx, %xmm2
     movq %r13, %xmm3
     /* movq mem64->xmm is encoded as f30f7e by GAS, but as
-       660f6e by tcc (which really is a movd and would need 
+       660f6e by nooc (which really is a movd and would need 
        a REX.W prefix to be movq).  */
     movq (%rsi), %xmm3
     movq %mm1, %rdx

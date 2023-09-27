@@ -1,4 +1,4 @@
-/* TCC runtime library. 
+/* NOOC runtime library. 
    Parts of this code are (c) 2002 Fabrice Bellard 
 
    Copyright (C) 1987, 1988, 1992, 1994, 1995 Free Software Foundation, Inc.
@@ -109,7 +109,7 @@ union float_long {
 /* XXX: we don't support several builtin supports for now */
 #if !defined __x86_64__ && !defined __arm__
 
-/* XXX: use gcc/tcc intrinsic ? */
+/* XXX: use gcc/nooc intrinsic ? */
 #if defined __i386__
 #define sub_ddmmss(sh, sl, ah, al, bh, bl) \
   __asm__ ("subl %5,%1\n\tsbbl %3,%0"					\
@@ -421,7 +421,7 @@ unsigned long long __umoddi3(unsigned long long u, unsigned long long v)
     return w;
 }
 
-/* XXX: fix tcc's code generator to do this instead */
+/* XXX: fix nooc's code generator to do this instead */
 long long __ashrdi3(long long a, int b)
 {
 #ifdef __TINYC__
@@ -440,7 +440,7 @@ long long __ashrdi3(long long a, int b)
 #endif
 }
 
-/* XXX: fix tcc's code generator to do this instead */
+/* XXX: fix nooc's code generator to do this instead */
 unsigned long long __lshrdi3(unsigned long long a, int b)
 {
 #ifdef __TINYC__
@@ -459,7 +459,7 @@ unsigned long long __lshrdi3(unsigned long long a, int b)
 #endif
 }
 
-/* XXX: fix tcc's code generator to do this instead */
+/* XXX: fix nooc's code generator to do this instead */
 long long __ashldi3(long long a, int b)
 {
 #ifdef __TINYC__
@@ -480,7 +480,7 @@ long long __ashldi3(long long a, int b)
 
 #endif /* !__x86_64__ */
 
-/* XXX: fix tcc's code generator to do this instead */
+/* XXX: fix nooc's code generator to do this instead */
 float __floatundisf(unsigned long long a)
 {
     DWunion uu; 

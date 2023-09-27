@@ -1,19 +1,19 @@
-/*  tccdefs.h
+/*  noocdefs.h
 
     Nothing is defined before this file except target machine, target os
-    and the few things related to option settings in tccpp.c:tcc_predefs().
+    and the few things related to option settings in noocpp.c:nooc_predefs().
 
     This file is either included at runtime as is, or converted and
-    included as C-strings at compile-time (depending on CONFIG_TCC_PREDEFS).
+    included as C-strings at compile-time (depending on CONFIG_NOOC_PREDEFS).
 
     Note that line indent matters:
 
     - in lines starting at column 1, platform macros are replaced by
-      corresponding TCC target compile-time macros.  See conftest.c for
+      corresponding NOOC target compile-time macros.  See conftest.c for
       the list of platform macros supported in lines starting at column 1.
 
     - only lines indented >= 4 are actually included into the executable,
-      check tccdefs_.h.
+      check noocdefs_.h.
 */
 
 #if __SIZEOF_POINTER__ == 4
@@ -151,7 +151,7 @@
 #endif
 
     /* skip __builtin... with -E */
-    #ifndef __TCC_PP__
+    #ifndef __NOOC_PP__
 
     #define __builtin_offsetof(type, field) ((__SIZE_TYPE__)&((type*)0)->field)
     #define __builtin_extract_return_addr(x) x
@@ -175,7 +175,7 @@
 #if defined __x86_64__
 #if !defined _WIN32
     /* GCC compatible definition of va_list. */
-    /* This should be in sync with the declaration in our lib/libtcc1.c */
+    /* This should be in sync with the declaration in our lib/libnooc1.c */
     typedef struct {
         unsigned gp_offset, fp_offset;
         union {
@@ -200,11 +200,11 @@
 
 #elif defined __arm__
     typedef char *__builtin_va_list;
-    #define _tcc_alignof(type) ((int)&((struct {char c;type x;} *)0)->x)
-    #define _tcc_align(addr,type) (((unsigned)addr + _tcc_alignof(type) - 1) \
-                                  & ~(_tcc_alignof(type) - 1))
+    #define _nooc_alignof(type) ((int)&((struct {char c;type x;} *)0)->x)
+    #define _nooc_align(addr,type) (((unsigned)addr + _nooc_alignof(type) - 1) \
+                                  & ~(_nooc_alignof(type) - 1))
     #define __builtin_va_start(ap,last) (ap = ((char *)&(last)) + ((sizeof(last)+3)&~3))
-    #define __builtin_va_arg(ap,type) (ap = (void *) ((_tcc_align(ap,type)+sizeof(type)+3) \
+    #define __builtin_va_arg(ap,type) (ap = (void *) ((_nooc_align(ap,type)+sizeof(type)+3) \
                            &~3), *(type *)(ap - ((sizeof(type)+3)&~3)))
 
 #elif defined __aarch64__
@@ -223,9 +223,9 @@
 #elif defined __riscv
     typedef char *__builtin_va_list;
     #define __va_reg_size (__riscv_xlen >> 3)
-    #define _tcc_align(addr,type) (((unsigned long)addr + __alignof__(type) - 1) \
+    #define _nooc_align(addr,type) (((unsigned long)addr + __alignof__(type) - 1) \
                                   & -(__alignof__(type)))
-    #define __builtin_va_arg(ap,type) (*(sizeof(type) > (2*__va_reg_size) ? *(type **)((ap += __va_reg_size) - __va_reg_size) : (ap = (va_list)(_tcc_align(ap,type) + (sizeof(type)+__va_reg_size - 1)& -__va_reg_size), (type *)(ap - ((sizeof(type)+ __va_reg_size - 1)& -__va_reg_size)))))
+    #define __builtin_va_arg(ap,type) (*(sizeof(type) > (2*__va_reg_size) ? *(type **)((ap += __va_reg_size) - __va_reg_size) : (ap = (va_list)(_nooc_align(ap,type) + (sizeof(type)+__va_reg_size - 1)& -__va_reg_size), (type *)(ap - ((sizeof(type)+ __va_reg_size - 1)& -__va_reg_size)))))
 
 #else /* __i386__ */
     typedef char *__builtin_va_list;
@@ -238,14 +238,14 @@
     # define __builtin_va_copy(dest, src) (dest) = (src)
     #endif
 
-    /* TCC BBUILTIN AND BOUNDS ALIASES */
+    /* NOOC BBUILTIN AND BOUNDS ALIASES */
     #ifdef __leading_underscore
     # define __RENAME(X) __asm__("_"X)
     #else
     # define __RENAME(X) __asm__(X)
     #endif
 
-    #ifdef __TCC_BCHECK__
+    #ifdef __NOOC_BCHECK__
     # define __BUILTINBC(ret,name,params) ret __builtin_##name params __RENAME("__bound_"#name);
     # define __BOUND(ret,name,params) ret name params __RENAME("__bound_"#name);
     #else
@@ -322,4 +322,4 @@
     __BUILTIN_EXTERN(parity, unsigned)
     #undef __BUILTIN_EXTERN
 
-    #endif /* ndef __TCC_PP__ */
+    #endif /* ndef __NOOC_PP__ */

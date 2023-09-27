@@ -1,5 +1,5 @@
 #
-# Tiny C Compiler Makefile for libtcc1.a
+# Tiny C Compiler Makefile for libnooc1.a
 #
 
 TOP = ..
@@ -8,23 +8,23 @@ VPATH = $(TOPSRC)/lib $(TOPSRC)/win32/lib
 T = $(or $(CROSS_TARGET),$(NATIVE_TARGET),unknown)
 X = $(if $(CROSS_TARGET),$(CROSS_TARGET)-)
 
-XTCC ?= $(TOP)/$(X)tcc$(EXESUF)
-XCC = $(XTCC)
-XAR = $(XTCC) -ar
+XNOOC ?= $(TOP)/$(X)nooc$(EXESUF)
+XCC = $(XNOOC)
+XAR = $(XNOOC) -ar
 XFLAGS-unx = -B$(TOPSRC)
 XFLAGS-win = -B$(TOPSRC)/win32 -I$(TOPSRC)/include
 XFLAGS = $(XFLAGS$(XCFG)) -I$(TOP)
 XCFG = $(or $(findstring -win,$T),-unx)
 S = $(if $(findstring yes,$(SILENT)),@$(info * $@))
 
-# in order to use gcc, type: make <target>-libtcc1-usegcc=yes
-arm-libtcc1-usegcc ?= no
+# in order to use gcc, type: make <target>-libnooc1-usegcc=yes
+arm-libnooc1-usegcc ?= no
 
 # This makes bounds checking 40%..60% faster.
-#x86_64-libtcc1-usegcc=yes
-#i386-libtcc1-usegcc=yes
+#x86_64-libnooc1-usegcc=yes
+#i386-libnooc1-usegcc=yes
 
-ifeq "$($(T)-libtcc1-usegcc)" "yes"
+ifeq "$($(T)-libnooc1-usegcc)" "yes"
  XCC = $(CC)
  XAR = $(AR)
  XFLAGS = $(CFLAGS) -fPIC -gdwarf -fno-omit-frame-pointer -Wno-unused-function -Wno-unused-variable
@@ -42,9 +42,9 @@ $(X)BT_O += tcov.o
 
 DSO_O = dsohandle.o
 
-I386_O = libtcc1.o alloca.o alloca-bt.o stdatomic.o atomic.o builtin.o $(BT_O)
-X86_64_O = libtcc1.o alloca.o alloca-bt.o stdatomic.o atomic.o builtin.o $(BT_O)
-ARM_O = libtcc1.o armeabi.o alloca.o armflush.o stdatomic.o atomic.o builtin.o $(BT_O)
+I386_O = libnooc1.o alloca.o alloca-bt.o stdatomic.o atomic.o builtin.o $(BT_O)
+X86_64_O = libnooc1.o alloca.o alloca-bt.o stdatomic.o atomic.o builtin.o $(BT_O)
+ARM_O = libnooc1.o armeabi.o alloca.o armflush.o stdatomic.o atomic.o builtin.o $(BT_O)
 ARM64_O = lib-arm64.o stdatomic.o atomic.o builtin.o $(BT_O)
 RISCV64_O = lib-arm64.o stdatomic.o atomic.o builtin.o $(BT_O)
 WIN_O = crt1.o crt1w.o wincrt1.o wincrt1w.o dllcrt1.o dllmain.o
@@ -66,13 +66,13 @@ OBJ-arm-wince = $(ARM_O) $(WIN_O)
 OBJ-riscv64 = $(RISCV64_O) $(BCHECK_O) $(DSO_O)
 
 OBJ-extra = $(filter $(B_O),$(OBJ-$T))
-OBJ-libtcc1 = $(addprefix $(X),$(filter-out $(OBJ-extra),$(OBJ-$T)))
+OBJ-libnooc1 = $(addprefix $(X),$(filter-out $(OBJ-extra),$(OBJ-$T)))
 
-ALL = $(addprefix $(TOP)/,$(X)libtcc1.a $(OBJ-extra))
+ALL = $(addprefix $(TOP)/,$(X)libnooc1.a $(OBJ-extra))
 
 all: $(ALL)
 
-$(TOP)/$(X)libtcc1.a : $(OBJ-libtcc1)
+$(TOP)/$(X)libnooc1.a : $(OBJ-libnooc1)
 	$S$(XAR) rcs $@ $^
 
 $(X)%.o : %.nc
@@ -84,8 +84,8 @@ $(X)%.o : %.S
 $(TOP)/%.o : %.nc
 	$S$(XCC) -c $< -o $@ $(XFLAGS)
 
-$(TOP)/bcheck.o : XFLAGS += -bt $(if $(CONFIG_musl),-DTCC_MUSL)
-$(TOP)/bt-exe.o : $(TOP)/tccrun.c
+$(TOP)/bcheck.o : XFLAGS += -bt $(if $(CONFIG_musl),-DNOOC_MUSL)
+$(TOP)/bt-exe.o : $(TOP)/noocrun.c
 
 $(X)crt1w.o : crt1.c
 $(X)wincrt1w.o : wincrt1.c

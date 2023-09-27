@@ -15,17 +15,17 @@ then
   exit 1
 fi
 
-if [ -z "$TCC_SOURCE_PATH" ]
+if [ -z "$NOOC_SOURCE_PATH" ]
 then
-  if [ -f "include/tccdefs.h" ]
+  if [ -f "include/noocdefs.h" ]
   then
-    TCC_SOURCE_PATH="."
-  elif [ -f "../include/tccdefs.h" ]
+    NOOC_SOURCE_PATH="."
+  elif [ -f "../include/noocdefs.h" ]
   then
-    TCC_SOURCE_PATH=".."
-  elif [ -f "../tinycc/include/tccdefs.h" ]
+    NOOC_SOURCE_PATH=".."
+  elif [ -f "../tinycc/include/noocdefs.h" ]
   then
-    TCC_SOURCE_PATH="../tinycc"
+    NOOC_SOURCE_PATH="../tinycc"
   fi
 fi
 
@@ -40,25 +40,25 @@ fi
 
 if [ -z "$CC" ]
 then
-  if [ -z "$TCC_SOURCE_PATH" ]
+  if [ -z "$NOOC_SOURCE_PATH" ]
   then
-      echo "tcc not found."
-      echo "define TCC_SOURCE_PATH to point to the tcc source path"
+      echo "nooc not found."
+      echo "define NOOC_SOURCE_PATH to point to the nooc source path"
       exit 1
   fi
 
-  TCC="./tcc -B. -I$TCC_SOURCE_PATH/ -I$TCC_SOURCE_PATH/include -DNO_TRAMPOLINES"
+  NOOC="./nooc -B. -I$NOOC_SOURCE_PATH/ -I$NOOC_SOURCE_PATH/include -DNO_TRAMPOLINES"
 else
-  TCC="$CC -O1 -Wno-implicit-int $CFLAGS"
+  NOOC="$CC -O1 -Wno-implicit-int $CFLAGS"
 fi
 
-rm -f tcc.sum tcc.fail
+rm -f nooc.sum nooc.fail
 nb_ok="0"
 nb_skipped="0"
 nb_failed="0"
 nb_exe_failed="0"
 
-# skip some failed tests not implemented in tcc
+# skip some failed tests not implemented in nooc
 # builtin: gcc "__builtins_*"
 # ieee: gcc "__builtins_*" in the ieee directory
 # complex: C99 "_Complex" and gcc "__complex__"
@@ -77,8 +77,8 @@ skip_misc="20000120-2.c mipscop-1.c mipscop-2.c mipscop-3.c mipscop-4.c
 cd "$old_pwd"
 
 for src in $TESTSUITE_PATH/compile/*.c ; do
-  echo $TCC -o $RUNTIME_DIR/tst.o -c $src
-  $TCC -o $RUNTIME_DIR/tst.o -c $src >> tcc.fail 2>&1
+  echo $NOOC -o $RUNTIME_DIR/tst.o -c $src
+  $NOOC -o $RUNTIME_DIR/tst.o -c $src >> nooc.fail 2>&1
   if [ "$?" = "0" ] ; then
     result="PASS"
     nb_ok=$(( $nb_ok + 1 ))
@@ -95,7 +95,7 @@ for src in $TESTSUITE_PATH/compile/*.c ; do
       nb_failed=$(( $nb_failed + 1 ))
     fi
   fi
-  echo "$result: $src"  >> tcc.sum
+  echo "$result: $src"  >> nooc.sum
 done
 
 if [ -f "$RUNTIME_DIR/tst.o" ]
@@ -104,11 +104,11 @@ then
 fi
 
 for src in $TESTSUITE_PATH/execute/*.c  $TESTSUITE_PATH/execute/ieee/*.c ; do
-  echo $TCC $src -o $RUNTIME_DIR/tst -lm
-  $TCC $src -o $RUNTIME_DIR/tst -lm >> tcc.fail 2>&1
+  echo $NOOC $src -o $RUNTIME_DIR/tst -lm
+  $NOOC $src -o $RUNTIME_DIR/tst -lm >> nooc.fail 2>&1
   if [ "$?" = "0" ] ; then
     result="PASS"
-    if $RUNTIME_DIR/tst >> tcc.fail 2>&1
+    if $RUNTIME_DIR/tst >> nooc.fail 2>&1
     then
       result="PASS"
       nb_ok=$(( $nb_ok + 1 ))
@@ -129,7 +129,7 @@ for src in $TESTSUITE_PATH/execute/*.c  $TESTSUITE_PATH/execute/ieee/*.c ; do
       nb_failed=$(( $nb_failed + 1 ))
     fi
   fi
-  echo "$result: $src"  >> tcc.sum
+  echo "$result: $src"  >> nooc.sum
 done
 
 if [ -f "$RUNTIME_DIR/tst.o" ]
@@ -141,11 +141,11 @@ then
     rm -f "$RUNTIME_DIR/tst"
 fi
 
-echo "$nb_ok test(s) ok." >> tcc.sum
+echo "$nb_ok test(s) ok." >> nooc.sum
 echo "$nb_ok test(s) ok."
-echo "$nb_skipped test(s) skipped." >> tcc.sum
+echo "$nb_skipped test(s) skipped." >> nooc.sum
 echo "$nb_skipped test(s) skipped."
-echo "$nb_failed test(s) failed." >> tcc.sum
+echo "$nb_failed test(s) failed." >> nooc.sum
 echo "$nb_failed test(s) failed."
-echo "$nb_exe_failed test(s) exe failed." >> tcc.sum
+echo "$nb_exe_failed test(s) exe failed." >> nooc.sum
 echo "$nb_exe_failed test(s) exe failed."
