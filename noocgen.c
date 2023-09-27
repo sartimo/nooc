@@ -1,7 +1,7 @@
 /*
- *  NOOC - Tiny C Compiler
+ *  NOOC - New Object Oriented C
  *
- *  Copyright (c) 2001-2004 Fabrice Bellard
+ *  Copyright (c) 2001-2004, 2022-2023 Timo Sarkar, Fabrice Bellard
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public

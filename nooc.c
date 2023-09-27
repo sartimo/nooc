@@ -1,7 +1,7 @@
 /*
- *  NOOC - Tiny C Compiler
+ *  NOOC - New Object Oriented C
  * 
- *  Copyright (c) 2001-2004 Fabrice Bellard
+ *  Copyright (c) 2001-2004, 2022-2023 Timo Sarkar, Fabrice Bellard
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -25,7 +25,7 @@
 #include "nooctools.c"
 
 static const char help[] =
-    "Tiny C Compiler "NOOC_VERSION" - Copyright (C) 2001-2006 Fabrice Bellard\n"
+    "New Object Oriented C "NOOC_VERSION" - Copyright (C) 2001-2006, 2022-2023, 2022-2023 Timo Sarkar, Fabrice Bellard\n"
     "Usage: nooc [options...] [-o outfile] [-c] infile(s)...\n"
     "       nooc [options...] -run infile (or --) [arguments...]\n"
     "General options:\n"
@@ -87,7 +87,7 @@ static const char help[] =
     ;
 
 static const char help2[] =
-    "Tiny C Compiler "NOOC_VERSION" - More Options\n"
+    "New Object Oriented C "NOOC_VERSION" - More Options\n"
     "Special options:\n"
     "  -P -P1                        with -E: no/alternative #line output\n"
     "  -dD -dM                       with -E: output #define directives\n"

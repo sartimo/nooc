@@ -1,7 +1,7 @@
 /*
  *  ARM specific functions for NOOC assembler
  *
- *  Copyright (c) 2001, 2002 Fabrice Bellard
+ *  Copyright (c) 2001, 2002; 2022, 2023 Timo Sarkar, Fabrice Bellard
  *  Copyright (c) 2020 Danny Milosavljevic
  *
  * This library is free software; you can redistribute it and/or

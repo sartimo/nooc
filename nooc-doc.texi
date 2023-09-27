@@ -1,10 +1,10 @@
 \input texinfo @c -*- texinfo -*-
 @c %**start of header
 @setfilename nooc-doc.info
-@settitle Tiny C Compiler Reference Documentation
+@settitle New Object Oriented C Reference Documentation
 @dircategory Software development
 @direntry
-* NOOC: (nooc-doc).               The Tiny C Compiler.
+* NOOC: (nooc-doc).               The New Object Oriented C.
 @end direntry
 @c %**end of header
 
@@ -14,7 +14,7 @@
 @titlepage
 @afourpaper
 @sp 7
-@center @titlefont{Tiny C Compiler Reference Documentation}
+@center @titlefont{New Object Oriented C Reference Documentation}
 @sp 3
 @end titlepage
 @headings double
@@ -23,9 +23,9 @@
 @contents
 
 @node Top, Introduction, (dir), (dir)
-@top Tiny C Compiler Reference Documentation
+@top New Object Oriented C Reference Documentation
 
-This manual documents version @value{VERSION} of the Tiny C Compiler.
+This manual documents version @value{VERSION} of the New Object Oriented C.
 
 @menu
 * Introduction::                Introduction to nooc.
@@ -443,7 +443,7 @@ A colon-separated list of directories searched for libraries for the
 @ignore
 
 @setfilename nooc
-@settitle Tiny C Compiler
+@settitle New Object Oriented C
 
 @c man begin SEEALSO
 cpp(1),
@@ -451,7 +451,7 @@ gcc(1)
 @c man end
 
 @c man begin AUTHOR
-Fabrice Bellard
+Timo Sarkar, Fabrice Bellard
 @c man end
 
 @end ignore

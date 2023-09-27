@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# nooc configure script (c) 2003 Fabrice Bellard
+# nooc configure script (c) 2003 Timo Sarkar, Fabrice Bellard
 
 # set temporary file name
 # if test ! -z "$TMPDIR" ; then

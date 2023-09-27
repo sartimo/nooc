@@ -1,7 +1,7 @@
 /*
  *  TMS320C67xx code generator for NOOC
  * 
- *  Copyright (c) 2001, 2002 Fabrice Bellard
+ *  Copyright (c) 2001, 2002; 2022, 2023 Timo Sarkar, Fabrice Bellard
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public

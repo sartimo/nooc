@@ -1,6 +1,6 @@
 # --------------------------------------------------------------------------
 #
-# Tiny C Compiler Makefile
+# New Object Oriented C Makefile
 #
 
 ifndef TOP
@@ -271,11 +271,11 @@ $(X)%.o : %.c $(LIBNOOC_INC)
 $(X)nooc.o : nooctools.c
 $(X)nooc.o : DEFINES += $(DEF_GITHASH)
 
-# Host Tiny C Compiler
+# Host New Object Oriented C
 nooc$(EXESUF): nooc.o $(LIBNOOC)
 	$S$(CC) -o $@ $^ $(LIBS) $(LDFLAGS) $(LINK_LIBNOOC)
 
-# Cross Tiny C Compilers
+# Cross New Object Oriented Cs
 # (the NOOCDEFS_H dependency is only necessary for parallel makes,
 # ala 'make -j x86_64-nooc i386-nooc nooc', which would create multiple
 # c2str.exe and noocdefs_.h files in parallel, leading to access errors.
@@ -348,7 +348,7 @@ nooc-doc.info: nooc-doc.texi
 	$(call run-if,makeinfo,$< || true)
 
 nooc.1 : nooc-doc.pod
-	$(call run-if,pod2man,--section=1 --center="Tiny C Compiler" \
+	$(call run-if,pod2man,--section=1 --center="New Object Oriented C" \
 		--release="$(VERSION)" $< >$@)
 %.pod : %.texi
 	$(call run-if,perl,$(TOPSRC)/texi2pod.pl $< $@)

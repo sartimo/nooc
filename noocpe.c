@@ -1,5 +1,5 @@
 /*
- *  NOOCPE.C - PE file output for the Tiny C Compiler
+ *  NOOCPE.C - PE file output for the New Object Oriented C
  *
  *  Copyright (c) 2005-2007 grischka
  *

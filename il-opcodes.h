@@ -1,7 +1,7 @@
 /*
  *  CIL opcode definition
  * 
- *  Copyright (c) 2002 Fabrice Bellard
+ *  Copyright (c) 2002 Timo Sarkar, Fabrice Bellard
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by

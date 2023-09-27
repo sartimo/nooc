@@ -1,5 +1,5 @@
 #
-# Tiny C Compiler Makefile for libnooc1.a
+# New Object Oriented C Makefile for libnooc1.a
 #
 
 TOP = ..

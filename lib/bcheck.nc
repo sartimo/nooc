@@ -1,7 +1,7 @@
 /*
  *  Tiny C Memory and bounds checker
  * 
- *  Copyright (c) 2002 Fabrice Bellard
+ *  Copyright (c) 2002 Timo Sarkar, Fabrice Bellard
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public

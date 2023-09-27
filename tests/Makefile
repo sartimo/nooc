@@ -1,5 +1,5 @@
 #
-# Tiny C Compiler Makefile - tests
+# New Object Oriented C Makefile - tests
 #
 
 TOP = ..
