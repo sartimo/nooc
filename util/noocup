@@ -1,0 +1,41 @@
+#!/bin/bash
+
+# Check if nooc is already installed
+if [ -x "$(command -v nooc)" ]; then
+  echo "nooc is already installed:"
+  nooc -v
+else
+  echo "" 
+fi
+
+# Function to install a specific toolchain
+install_toolchain() {
+  echo "Installing nooc-latest from source..."
+  # Install nooc with the default version
+  cd /tmp
+  wget https://github.com/sartimo/nooc/releases/download/0.0.9/nooc-0.0.9.tar.gz
+  tar -xvf nooc-0.9.0.tar.gz
+  cd nooc-0.9.0.tar.gz
+  chmod +x ./install.sh
+
+  echo "Building bootstrap binaries..."
+  
+  ./install.sh
+  git clone https://github.com/sartimo/nooc/
+  cd nooc/
+
+  echo "Building self-host compiler..."
+  make -j$(nproc)
+
+  echo "Installing new binaries..."
+  make install # overwrites the current nooc binaries with the self-hosted compiler binaries
+
+  echo "done."
+}
+
+# Main script
+if [ "$1" == "install" ]; then
+  install_toolchain
+else
+  echo "Usage: $0 [install]"
+fi
