@@ -5,7 +5,7 @@
 #define CONFIG_NOOC_BACKTRACE_ONLY
 #define ONE_SOURCE 1
 #define pstrcpy nooc_pstrcpy
-#include "../noocrun.c"
+#include "../noocrun.nc"
 
 int (*__rt_error)(void*, void*, const char *, va_list);
 __attribute__((weak)) void __bound_checking_lock(void);

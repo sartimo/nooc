@@ -2,16 +2,16 @@
 
 if [ -z "$TESTSUITE_PATH" ]
 then
-  if [ -d "$HOME/gcc/gcc-3.2/gcc/testsuite/gcc.c-torture" ]
+  if [ -d "$HOME/gcc/gcc-3.2/gcc/testsuite/gcc.nc-torture" ]
   then
-    TESTSUITE_PATH="$HOME/gcc/gcc-3.2/gcc/testsuite/gcc.c-torture"
+    TESTSUITE_PATH="$HOME/gcc/gcc-3.2/gcc/testsuite/gcc.nc-torture"
   fi
 fi
 
 if [ -z "$TESTSUITE_PATH" ]
 then
   echo "gcc testsuite not found."
-  echo "define TESTSUITE_PATH to point to the gcc.c-torture directory"
+  echo "define TESTSUITE_PATH to point to the gcc.nc-torture directory"
   exit 1
 fi
 
@@ -68,15 +68,15 @@ nb_exe_failed="0"
 old_pwd="`pwd`"
 cd "$TESTSUITE_PATH"
 
-skip_builtin="`grep "_builtin_"  compile/*.c  execute/*.c  execute/ieee/*.c | cut -d ':' -f1 | cut -d '/' -f2 |  sort -u `"
-skip_ieee="`grep "_builtin_"   execute/ieee/*.c | cut -d ':' -f1 | cut -d '/' -f3 |  sort -u `"
-skip_complex="`grep -i "_Complex"  compile/*.c  execute/*.c  execute/ieee/*.c | cut -d ':' -f1 | cut -d '/' -f2 |  sort -u `"
-skip_misc="20000120-2.c mipscop-1.c mipscop-2.c mipscop-3.c mipscop-4.c
-   fp-cmp-4f.c fp-cmp-4l.c fp-cmp-8f.c fp-cmp-8l.c pr38016.c "
+skip_builtin="`grep "_builtin_"  compile/*.nc  execute/*.nc  execute/ieee/*.nc | cut -d ':' -f1 | cut -d '/' -f2 |  sort -u `"
+skip_ieee="`grep "_builtin_"   execute/ieee/*.nc | cut -d ':' -f1 | cut -d '/' -f3 |  sort -u `"
+skip_complex="`grep -i "_Complex"  compile/*.nc  execute/*.nc  execute/ieee/*.nc | cut -d ':' -f1 | cut -d '/' -f2 |  sort -u `"
+skip_misc="20000120-2.nc mipscop-1.nc mipscop-2.nc mipscop-3.nc mipscop-4.nc
+   fp-cmp-4f.nc fp-cmp-4l.nc fp-cmp-8f.nc fp-cmp-8l.nc pr38016.nc "
 
 cd "$old_pwd"
 
-for src in $TESTSUITE_PATH/compile/*.c ; do
+for src in $TESTSUITE_PATH/compile/*.nc ; do
   echo $NOOC -o $RUNTIME_DIR/tst.o -c $src
   $NOOC -o $RUNTIME_DIR/tst.o -c $src >> nooc.fail 2>&1
   if [ "$?" = "0" ] ; then
@@ -103,7 +103,7 @@ then
     rm -f "$RUNTIME_DIR/tst.o"
 fi
 
-for src in $TESTSUITE_PATH/execute/*.c  $TESTSUITE_PATH/execute/ieee/*.c ; do
+for src in $TESTSUITE_PATH/execute/*.nc  $TESTSUITE_PATH/execute/ieee/*.nc ; do
   echo $NOOC $src -o $RUNTIME_DIR/tst -lm
   $NOOC $src -o $RUNTIME_DIR/tst -lm >> nooc.fail 2>&1
   if [ "$?" = "0" ] ; then

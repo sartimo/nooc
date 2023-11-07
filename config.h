@@ -6,6 +6,6 @@
 # define CONFIG_NOOC_PREDEFS 1
 #endif
 #define NOOC_VERSION "0.0.1"
-#define GCC_MAJOR 10
-#define GCC_MINOR 3
-#define CC_NAME CC_gcc
+#define GCC_MAJOR 0
+#define GCC_MINOR 1
+#define CC_NAME CC_nooc

@@ -19,44 +19,44 @@
  */
 
 #if !defined ONE_SOURCE || ONE_SOURCE
-#include "noocpp.c"
-#include "noocgen.c"
-#include "noocdbg.c"
-#include "noocasm.c"
-#include "noocelf.c"
-#include "noocrun.c"
+#include "noocpp.nc"
+#include "noocgen.nc"
+#include "noocdbg.nc"
+#include "noocasm.nc"
+#include "noocelf.nc"
+#include "noocrun.nc"
 #ifdef NOOC_TARGET_I386
-#include "i386-gen.c"
-#include "i386-link.c"
-#include "i386-asm.c"
+#include "i386-gen.nc"
+#include "i386-link.nc"
+#include "i386-asm.nc"
 #elif defined(NOOC_TARGET_ARM)
-#include "arm-gen.c"
-#include "arm-link.c"
-#include "arm-asm.c"
+#include "arm-gen.nc"
+#include "arm-link.nc"
+#include "arm-asm.nc"
 #elif defined(NOOC_TARGET_ARM64)
-#include "arm64-gen.c"
-#include "arm64-link.c"
-#include "arm-asm.c"
+#include "arm64-gen.nc"
+#include "arm64-link.nc"
+#include "arm-asm.nc"
 #elif defined(NOOC_TARGET_C67)
-#include "c67-gen.c"
-#include "c67-link.c"
-#include "nooccoff.c"
+#include "c67-gen.nc"
+#include "c67-link.nc"
+#include "nooccoff.nc"
 #elif defined(NOOC_TARGET_X86_64)
-#include "x86_64-gen.c"
-#include "x86_64-link.c"
-#include "i386-asm.c"
+#include "x86_64-gen.nc"
+#include "x86_64-link.nc"
+#include "i386-asm.nc"
 #elif defined(NOOC_TARGET_RISCV64)
-#include "riscv64-gen.c"
-#include "riscv64-link.c"
-#include "riscv64-asm.c"
+#include "riscv64-gen.nc"
+#include "riscv64-link.nc"
+#include "riscv64-asm.nc"
 #else
 #error unknown target
 #endif
 #ifdef NOOC_TARGET_PE
-#include "noocpe.c"
+#include "noocpe.nc"
 #endif
 #ifdef NOOC_TARGET_MACHO
-#include "noocmacho.c"
+#include "noocmacho.nc"
 #endif
 #endif /* ONE_SOURCE */
 

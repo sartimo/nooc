@@ -26,7 +26,7 @@ int APIENTRY wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int);
 typedef struct { int newmode; } _startupinfo;
 int __cdecl __tgetmainargs(int *pargc, _TCHAR ***pargv, _TCHAR ***penv, int globb, _startupinfo*);
 
-#include "crtinit.c"
+#include "crtinit.nc"
 
 static int go_winmain(TCHAR *arg1)
 {

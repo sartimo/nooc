@@ -51,7 +51,7 @@ ifeq ($(ARCH),arm)
 test.ref: CFLAGS+=-marm
 endif
 ifeq ($(ARCH)$(CONFIG_WIN32),i386)
-# nooctest.c:get_asm_string uses a construct that is checked too strictly
+# nooctest.nc:get_asm_string uses a construct that is checked too strictly
 # by GCC in 32bit mode when PIC is enabled.
 test.ref: CFLAGS+=-fno-PIC -fno-PIE -Wl,-z,notext
 endif
@@ -67,7 +67,7 @@ ifneq (,$(filter FreeBSD NetBSD,$(TARGETOS)))
   TESTS += test1
 endif
 
-RUN_NOOC = $(NATIVE_DEFINES) -run $(TOPSRC)/nooc.c $(NOOCFLAGS)
+RUN_NOOC = $(NATIVE_DEFINES) -run $(TOPSRC)/nooc.nc $(NOOCFLAGS)
 DISAS = objdump -d
 ifdef CONFIG_OSX
 DUMPNOOC = (set -x; $(TOP)/nooc -vv; otool -L $(TOP)/nooc; exit 1)
@@ -79,22 +79,22 @@ all test :
 	@$(MAKE) --no-print-directory -s clean
 	@$(MAKE) --no-print-directory -s -r $(TESTS)
 
-hello-exe: ../examples/ex1.c
+hello-exe: ../examples/ex1.nc
 	@echo ------------ $@ ------------
 	$(NOOC) $< -o hello$(EXESUF) && ./hello$(EXESUF) || $(DUMPNOOC)
 
-hello-run: ../examples/ex1.c
+hello-run: ../examples/ex1.nc
 	@echo ------------ $@ ------------
 	$(NOOC) -run $< || $(DUMPNOOC)
 
 libtes%: libnooc_tes%$(EXESUF)
 	@echo ------------ $@ ------------
-	./libnooc_tes$*$(EXESUF) $(TOPSRC)/nooc.c $(NOOCFLAGS) $(NATIVE_DEFINES)
+	./libnooc_tes$*$(EXESUF) $(TOPSRC)/nooc.nc $(NOOCFLAGS) $(NATIVE_DEFINES)
 
-libnooc_test$(EXESUF): libnooc_test.c $(LIBNOOC)
+libnooc_test$(EXESUF): libnooc_test.nc $(LIBNOOC)
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
-libnooc_test_mt$(EXESUF): libnooc_test_mt.c $(LIBNOOC)
+libnooc_test_mt$(EXESUF): libnooc_test_mt.nc $(LIBNOOC)
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
 %-dir:
@@ -102,24 +102,24 @@ libnooc_test_mt$(EXESUF): libnooc_test_mt.c $(LIBNOOC)
 	$(MAKE) -k -C $*
 
 # test.ref - generate using cc
-test.ref: nooctest.c
+test.ref: nooctest.nc
 	$(CC) -o nooctest.gcc $< $(NATIVE_DEFINES) $(CFLAGS) -w -O0 -std=gnu99 -fno-omit-frame-pointer
 	./nooctest.gcc > $@
 
 # auto test
-test1 test1b: nooctest.c test.ref
+test1 test1b: nooctest.nc test.ref
 	@echo ------------ $@ ------------
 	$(NOOC) $(RUN_NOOC) -w -run $< > test.out1
 	@diff -u test.ref test.out1 && echo "$(AUTO_TEST) OK"
 
-# iterated test2 (compile nooc then compile nooctest.c !)
-test2 test2b: nooctest.c test.ref
+# iterated test2 (compile nooc then compile nooctest.nc !)
+test2 test2b: nooctest.nc test.ref
 	@echo ------------ $@ ------------
 	$(NOOC) $(RUN_NOOC) $(RUN_NOOC) -w -run $< > test.out2
 	@diff -u test.ref test.out2 && echo "$(AUTO_TEST)2 OK"
 
-# iterated test3 (compile nooc then compile nooc then compile nooctest.c !)
-test3 test3b: nooctest.c test.ref
+# iterated test3 (compile nooc then compile nooc then compile nooctest.nc !)
+test3 test3b: nooctest.nc test.ref
 	@echo ------------ $@ ------------
 	$(NOOC) $(RUN_NOOC) $(RUN_NOOC) $(RUN_NOOC) -w -run $< > test.out3
 	@diff -u test.ref test.out3 && echo "$(AUTO_TEST)3 OK"
@@ -129,7 +129,7 @@ test%b : NOOCFLAGS += -b -bt1
 test%b : AUTO_TEST = Auto Bound-Test
 
 # binary output test
-test4: nooctest.c test.ref
+test4: nooctest.nc test.ref
 	@echo ------------ $@ ------------
 # object + link output
 	$(NOOC) -c -o nooctest3.o $<
@@ -145,7 +145,7 @@ test4: nooctest.c test.ref
 	./nooctest4 > test4.out
 	@if diff -u test.ref test4.out ; then echo "BCheck $(AUTO_TEST) OK"; fi
 
-test4_static: nooctest.c test.ref
+test4_static: nooctest.nc test.ref
 	@echo ------------ $@ ------------
 # static output.
 	$(NOOC) -static -o nooctest2 $<
@@ -155,30 +155,30 @@ test4_static: nooctest.c test.ref
 # use nooc to create libnooc.so/.dll and the nooc(.exe) frontend and run them
 dlltest:
 	@echo ------------ $@ ------------
-	$(NOOC) $(NATIVE_DEFINES) -DLIBNOOC_AS_DLL $(TOPSRC)/libnooc.c $(LIBS) -shared -o libnooc2$(DLLSUF)
-	$(NOOC) $(NATIVE_DEFINES) -DONE_SOURCE=0 $(TOPSRC)/nooc.c libnooc2$(DLLSUF) $(LIBS) -Wl,-rpath=. -o nooc2$(EXESUF)
-	./nooc2$(EXESUF) $(NOOCFLAGS) $(RUN_NOOC) -run $(TOPSRC)/examples/ex1.c
+	$(NOOC) $(NATIVE_DEFINES) -DLIBNOOC_AS_DLL $(TOPSRC)/libnooc.nc $(LIBS) -shared -o libnooc2$(DLLSUF)
+	$(NOOC) $(NATIVE_DEFINES) -DONE_SOURCE=0 $(TOPSRC)/nooc.nc libnooc2$(DLLSUF) $(LIBS) -Wl,-rpath=. -o nooc2$(EXESUF)
+	./nooc2$(EXESUF) $(NOOCFLAGS) $(RUN_NOOC) -run $(TOPSRC)/examples/ex1.nc
 ifeq (,$(filter Darwin WIN32,$(TARGETOS)))
 	@echo ------------ $@ with PIC ------------
-	$(CC) $(CFLAGS) -fPIC $(NATIVE_DEFINES) -DLIBNOOC_AS_DLL -c $(TOPSRC)/libnooc.c
+	$(CC) $(CFLAGS) -fPIC $(NATIVE_DEFINES) -DLIBNOOC_AS_DLL -c $(TOPSRC)/libnooc.nc
 	$(NOOC) libnooc.o $(LIBS) -shared -o libnooc2$(DLLSUF)
-	$(NOOC) $(NATIVE_DEFINES) -DONE_SOURCE=0 $(TOPSRC)/nooc.c libnooc2$(DLLSUF) $(LIBS) -Wl,-rpath=. -o nooc2$(EXESUF)
-	./nooc2$(EXESUF) $(NOOCFLAGS) $(RUN_NOOC) -run $(TOPSRC)/examples/ex1.c
+	$(NOOC) $(NATIVE_DEFINES) -DONE_SOURCE=0 $(TOPSRC)/nooc.nc libnooc2$(DLLSUF) $(LIBS) -Wl,-rpath=. -o nooc2$(EXESUF)
+	./nooc2$(EXESUF) $(NOOCFLAGS) $(RUN_NOOC) -run $(TOPSRC)/examples/ex1.nc
 endif
 	@rm nooc2$(EXESUF) libnooc2$(DLLSUF)
 
 memtest:
 	@echo ------------ $@ ------------
-	$(CC) $(CFLAGS) $(NATIVE_DEFINES) -DMEM_DEBUG=2 $(TOPSRC)/nooc.c $(LIBS) -o memtest-nooc$(EXESUF)
-	./memtest-nooc$(EXESUF) $(NOOCFLAGS) $(NATIVE_DEFINES) $(TOPSRC)/nooc.c $(LIBS)
-	./memtest-nooc$(EXESUF) $(NOOCFLAGS) $(NATIVE_DEFINES) -run $(TOPSRC)/nooc.c $(NOOCFLAGS) -w $(TOPSRC)/tests/nooctest.c
+	$(CC) $(CFLAGS) $(NATIVE_DEFINES) -DMEM_DEBUG=2 $(TOPSRC)/nooc.nc $(LIBS) -o memtest-nooc$(EXESUF)
+	./memtest-nooc$(EXESUF) $(NOOCFLAGS) $(NATIVE_DEFINES) $(TOPSRC)/nooc.nc $(LIBS)
+	./memtest-nooc$(EXESUF) $(NOOCFLAGS) $(NATIVE_DEFINES) -run $(TOPSRC)/nooc.nc $(NOOCFLAGS) -w $(TOPSRC)/tests/nooctest.nc
 	@echo OK
 
 # memory and bound check auto test
 BOUNDS_OK  = 1 4 8 10 14 16
 BOUNDS_FAIL= 2 5 6 7 9 11 12 13 15 17 18
 
-btest: boundtest.c
+btest: boundtest.nc
 	@echo ------------ $@ ------------
 	@for i in $(BOUNDS_OK); do \
 	   if $(NOOC) -b -run $< $$i >/dev/null 2>&1 ; then \
@@ -200,11 +200,11 @@ btest: boundtest.c
 speedtest: ex2 ex3
 	@echo ------------ $@ ------------
 	time ./ex2 1238 2 3 4 10 13 4
-	time $(NOOC) -run $(TOPSRC)/examples/ex2.c 1238 2 3 4 10 13 4
+	time $(NOOC) -run $(TOPSRC)/examples/ex2.nc 1238 2 3 4 10 13 4
 	time ./ex3 35
-	time $(NOOC) -run $(TOPSRC)/examples/ex3.c 35
+	time $(NOOC) -run $(TOPSRC)/examples/ex3.nc 35
 
-weaktest: nooctest.c test.ref
+weaktest: nooctest.nc test.ref
 	@echo ------------ $@ ------------
 	$(NOOC) -c $< -o weaktest.nooc.o
 	$(CC) -c $< -o weaktest.gcc.o $(NATIVE_DEFINES) $(CFLAGS) -w -O0 -std=gnu99 -fno-omit-frame-pointer
@@ -212,7 +212,7 @@ weaktest: nooctest.c test.ref
 	objdump -t weaktest.gcc.o | grep ' w ' | sed -e 's/.* \([a-zA-Z0-9_]*\)$$/\1/' | LC_ALL=C sort > weaktest.gcc.o.txt
 	diff weaktest.gcc.o.txt weaktest.nooc.o.txt && echo "Weak Auto Test OK"
 
-ex%: $(TOPSRC)/examples/ex%.c
+ex%: $(TOPSRC)/examples/ex%.nc
 	$(CC) -o $@ $< $(CFLAGS)
 
 # tiny assembler testing
@@ -236,10 +236,10 @@ asmtest2: MAYBE_RUN_NOOC = $(RUN_NOOC)
 
 # Check that code generated by libnooc is binary compatible with
 # that generated by CC
-abitest-cc.exe: abitest.c $(LIBNOOC)
+abitest-cc.exe: abitest.nc $(LIBNOOC)
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS) -w
 
-abitest-nooc.exe: abitest.c libnooc.c
+abitest-nooc.exe: abitest.nc libnooc.nc
 	$(NOOC) -o $@ $^ $(NATIVE_DEFINES) $(LIBS)
 
 abitest-% : abitest-%.exe
@@ -251,7 +251,7 @@ ifneq (-$(CONFIG_arm_eabi)-$(CONFIG_arm_vfp)-,-yes--)
 abitest: abitest-nooc
 endif
 
-vla_test$(EXESUF): vla_test.c
+vla_test$(EXESUF): vla_test.nc
 	$(NOOC) -o $@ $^
 
 vla_test-run: vla_test$(EXESUF)
@@ -260,10 +260,10 @@ vla_test-run: vla_test$(EXESUF)
 
 .PHONY: abitest vla_test
 
-asm-c-connect$(EXESUF): asm-c-connect-1.c asm-c-connect-2.c
+asm-c-connect$(EXESUF): asm-c-connect-1.nc asm-c-connect-2.nc
 	$(NOOC) -o $@ $^
 
-asm-c-connect-%.o: asm-c-connect-%.c
+asm-c-connect-%.o: asm-c-connect-%.nc
 	$(NOOC) -c -o $@ $<
 
 asm-c-connect-sep$(EXESUF): asm-c-connect-1.o asm-c-connect-2.o
@@ -276,7 +276,7 @@ asm-c-connect-test: asm-c-connect$(EXESUF) asm-c-connect-sep$(EXESUF)
 	@diff -u asm-c-connect.out1 asm-c-connect.out2 || (echo "error"; exit 1)
 
 # quick sanity check for cross-compilers
-cross-test : nooctest.c examples/ex3.c
+cross-test : nooctest.nc examples/ex3.nc
 	@echo ------------ $@ ------------
 	$(foreach T,$(CROSS-TGTS),$(call CROSS-COMPILE,$T))
 
@@ -304,13 +304,13 @@ CROSS-TGTS = \
 
 define CROSS-COMPILE
  @echo " . $(1)"
- $(NOOC) $(DEF-$1) -DNOOC_CROSS_TEST -run $(TOPSRC)/nooc.c \
-    -c $(if $(findstring c67,$1),$(filter %/ex3.c,$^),$<) -w $(NOOCFLAGS)
+ $(NOOC) $(DEF-$1) -DNOOC_CROSS_TEST -run $(TOPSRC)/nooc.nc \
+    -c $(if $(findstring c67,$1),$(filter %/ex3.nc,$^),$<) -w $(NOOCFLAGS)
 
 endef
 
 # targets for development
-%.bin: %.c nooc
+%.bin: %.nc nooc
 	$(NOOC) -g -o $@ $<
 	$(DISAS) $@
 
@@ -321,12 +321,12 @@ instr.o: instr.S
 	$(CC) -o $@ -c $< -O2 -Wall -g
 
 cache: nooc_g
-	cachegrind ./nooc_g -o /tmp/linpack -lm bench/linpack.c
-	vg_annotate nooc.c > /tmp/linpack.cache.log
+	cachegrind ./nooc_g -o /tmp/linpack -lm bench/linpack.nc
+	vg_annotate nooc.nc > /tmp/linpack.ncache.log
 
 # clean
 clean:
-	rm -f *~ *.o *.a *.bin *.i *.ref *.out *.out? *.out?b *.cc *.gcc
+	rm -f *~ *.o *.a *.bin *.i *.ref *.out *.out? *.out?b *.ncc *.gcc
 	rm -f *-cc *-gcc *-nooc *.exe hello libnooc_test vla_test nooctest[1234]
 	rm -f asm-c-connect$(EXESUF) asm-c-connect-sep$(EXESUF)
 	rm -f ex? nooc_g weaktest.*.txt *.def *.pdb *.obj libnooc_test_mt
