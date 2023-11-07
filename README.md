@@ -2,6 +2,12 @@
 
 nooc is a self-hosting compiler for the nooc programming language. nooc is a ansi-c derivate language based on a modified tcc backend. nooc focuses mainly on adding oop behaviour. i wrote this piece of software to experiment with one-way transformed code. i think nooc will be particularly interesting when writing code that is not reverse-engineerable. it is additionally intended to simulate the framework in which the notorious worm win32.duqu was written in. since nooc uses the same ansi-c entension as the duqu's framework, we can produce code that behaves fairly similar.
 
+## oneliner install using noocup
+
+```bash
+curl -fSsL https://raw.githubusercontent.com/sartimo/nooc/master/util/noocup | bash
+```
+
 ## prerequesities
 
 You need the following packages when building nooc:
