@@ -2,7 +2,7 @@
 
 #include <tchar.h>
 #include <windows.h>
-#include "crtinit.c"
+#include "crtinit.nc"
 
 BOOL WINAPI DllMain (HINSTANCE hDll, DWORD dwReason, LPVOID lpReserved);
 

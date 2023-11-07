@@ -35,7 +35,7 @@ void __cdecl __set_app_type(int apptype);
 unsigned int __cdecl _controlfp(unsigned int new_value, unsigned int mask);
 extern int _tmain(int argc, _TCHAR * argv[], _TCHAR * env[]);
 
-#include "crtinit.c"
+#include "crtinit.nc"
 
 static int do_main (int argc, _TCHAR * argv[], _TCHAR * env[])
 {

@@ -3,9 +3,9 @@ include $(TOP)/Makefile
 SRC = $(TOPSRC)/tests/tests2
 VPATH = $(SRC)
 
-TESTS = $(patsubst %.c,%.test,\
-    $(sort $(notdir $(wildcard $(SRC)/??_*.c)))\
-    $(sort $(notdir $(wildcard $(SRC)/???_*.c))))
+TESTS = $(patsubst %.nc,%.test,\
+    $(sort $(notdir $(wildcard $(SRC)/??_*.nc)))\
+    $(sort $(notdir $(wildcard $(SRC)/???_*.nc))))
 
 # some tests do not pass on all platforms, remove them for now
 SKIP = 34_array_assignment.test # array assignment is not in C standard
@@ -50,7 +50,7 @@ endif
 ifneq (,$(filter OpenBSD FreeBSD NetBSD,$(TARGETOS)))
  SKIP += 106_versym.test # no pthread_condattr_setpshared
  SKIP += 114_bound_signal.test # libc problem signal/fork
- SKIP += 116_bound_setjmp2.test # No TLS_FUNC/TLS_VAR in bcheck.c
+ SKIP += 116_bound_setjmp2.test # No TLS_FUNC/TLS_VAR in bcheck.nc
 endif
 
 # Some tests might need arguments
@@ -60,7 +60,7 @@ ifneq (-$(CONFIG_WIN32)-,-yes-)
 24_math_library.test: FLAGS += -lm
 endif
 31_args.test : ARGS = arg1 arg2 arg3 arg4 arg5
-46_grep.test : ARGS = '[^* ]*[:a:d: ]+\:\*-/: $$' $(SRC)/46_grep.c
+46_grep.test : ARGS = '[^* ]*[:a:d: ]+\:\*-/: $$' $(SRC)/46_grep.nc
 
 # And some tests don't test the right thing with -run
 NORUN =
@@ -131,7 +131,7 @@ FILTER = 2>&1 | sed -e 's,$(SRC)/,,g'
 all test tests2.all: $(filter-out $(SKIP),$(TESTS))
 	@$(MAKE) clean --no-print-directory -s
 
-%.test: %.c %.expect
+%.test: %.nc %.expect
 	@echo Test: $*...
 	@$(call T1,$<) $(T3)
 
@@ -159,7 +159,7 @@ F2 = $1 UPDATE="$(patsubst %.test,%.expect,$1)"
 # automatically generate .expect files with gcc:
 %.expect :
 	@echo Generating: $@
-	@$(call GEN,$(SRC)/$*.c) $(FILTER) >$@ 2>&1
+	@$(call GEN,$(SRC)/$*.nc) $(FILTER) >$@ 2>&1
 	@rm -f *.exe *.obj *.pdb
 
 # using NOOC for .expect if -dt in FLAGS

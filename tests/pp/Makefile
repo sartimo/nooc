@@ -1,5 +1,5 @@
 #
-# credits: 01..13.c from the pcc cpp-tests suite
+# credits: 01..13.nc from the pcc cpp-tests suite
 #
 
 TOP = ../..
@@ -17,7 +17,7 @@ DIFF_OPTS = -Nu -b
 # Filter source directory in warnings/errors (out-of-tree builds)
 FILTER = 2>&1 | sed 's,$(SRC)/,,g'
 
-%.test: %.c %.expect
+%.test: %.nc %.expect
 	@echo PPTest $* ...
 	-@$(NOOC) -E -P $< $(FILTER) >$*.output 2>&1 ; \
 	    diff $(DIFF_OPTS) $(SRC)/$*.expect $*.output \
@@ -32,7 +32,7 @@ FILTER = 2>&1 | sed 's,$(SRC)/,,g'
 testspp.%: %.test ;
 
 # automatically generate .expect files with gcc:
-%.expect: # %.c
+%.expect: # %.nc
 	gcc -E -P $*.[cS] >$*.expect 2>&1
 
 # tell make not to delete

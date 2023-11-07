@@ -407,28 +407,28 @@ extern long double strtold (const char *__nptr, char **__endptr);
 
 #define TARGET_DEFS_ONLY
 #ifdef NOOC_TARGET_I386
-# include "i386-gen.c"
-# include "i386-link.c"
+# include "i386-gen.nc"
+# include "i386-link.nc"
 #elif defined NOOC_TARGET_X86_64
-# include "x86_64-gen.c"
-# include "x86_64-link.c"
+# include "x86_64-gen.nc"
+# include "x86_64-link.nc"
 #elif defined NOOC_TARGET_ARM
-# include "arm-gen.c"
-# include "arm-link.c"
-# include "arm-asm.c"
+# include "arm-gen.nc"
+# include "arm-link.nc"
+# include "arm-asm.nc"
 #elif defined NOOC_TARGET_ARM64
-# include "arm64-gen.c"
-# include "arm64-link.c"
-# include "arm-asm.c"
+# include "arm64-gen.nc"
+# include "arm64-link.nc"
+# include "arm-asm.nc"
 #elif defined NOOC_TARGET_C67
 # define NOOC_TARGET_COFF
 # include "coff.h"
-# include "c67-gen.c"
-# include "c67-link.c"
+# include "c67-gen.nc"
+# include "c67-link.nc"
 #elif defined(NOOC_TARGET_RISCV64)
-# include "riscv64-gen.c"
-# include "riscv64-link.c"
-# include "riscv64-asm.c"
+# include "riscv64-gen.nc"
+# include "riscv64-link.nc"
+# include "riscv64-asm.nc"
 #else
 #error unknown target
 #endif

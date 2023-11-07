@@ -85,10 +85,10 @@ $(TOP)/%.o : %.nc
 	$S$(XCC) -c $< -o $@ $(XFLAGS)
 
 $(TOP)/bcheck.o : XFLAGS += -bt $(if $(CONFIG_musl),-DNOOC_MUSL)
-$(TOP)/bt-exe.o : $(TOP)/noocrun.c
+$(TOP)/bt-exe.o : $(TOP)/noocrun.nc
 
-$(X)crt1w.o : crt1.c
-$(X)wincrt1w.o : wincrt1.c
+$(X)crt1w.o : crt1.nc
+$(X)wincrt1w.o : wincrt1.nc
 
 clean :
 	rm -f *.a *.o $(ALL)

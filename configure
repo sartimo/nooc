@@ -11,7 +11,7 @@
 #     TMPDIR1="/tmp"
 # fi
 #
-# bashism: TMPN="${TMPDIR1}/nooc-conf-${RANDOM}-$$-${RANDOM}.c"
+# bashism: TMPN="${TMPDIR1}/nooc-conf-${RANDOM}-$$-${RANDOM}.nc"
 
 TMPN="./conftest-$$"
 TMPH=$TMPN.h
@@ -27,7 +27,7 @@ mandir=""
 infodir=""
 sysroot=""
 cross_prefix=""
-cc="gcc"
+cc="nooc"
 ar="ar"
 bigendian="no"
 mingw32="no"
@@ -45,7 +45,7 @@ confvars=
 suggest="yes"
 gcc_major=0
 gcc_minor=0
-cc_name="gcc"
+cc_name="nooc"
 ar_set=
 cpu=
 cpuver=
@@ -401,7 +401,7 @@ fi
 # set default CFLAGS
 default CFLAGS "-Wall -O2"
 
-if test "$mingw32" = "yes" -a "$cc_name" = "gcc"; then
+if test "$mingw32" = "yes" -a "$cc_name" = "nooc"; then
   # avoid mingw dependencies such as 'libgcc_s_dw2-1.dll'
   default LDFLAGS "-static"
 fi
@@ -412,8 +412,8 @@ fi
 
 if test -z "$build_cross"; then
   CONFTEST=./conftest$EXESUF
-  if ! $cc -o $CONFTEST $source_path/conftest.c ; then
-    echo "configure: error: '$cc' failed to compile conftest.c."
+  if ! $cc -o $CONFTEST $source_path/conftest.nc ; then
+    echo "configure: error: '$cc' failed to compile conftest.nc."
   else
     cc_name="$($CONFTEST compiler)"
     gcc_major="$($CONFTEST version)"

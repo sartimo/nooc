@@ -20,9 +20,9 @@
 
 #include "nooc.h"
 #if ONE_SOURCE
-# include "libnooc.c"
+# include "libnooc.nc"
 #endif
-#include "nooctools.c"
+#include "nooctools.nc"
 
 static const char help[] =
     "New Object Oriented C "NOOC_VERSION" - Copyright (C) 2001-2006, 2022-2023, 2022-2023 Timo Sarkar, Fabrice Bellard\n"

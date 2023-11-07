@@ -208,30 +208,30 @@ INC-$(TR) ?= {B}/include:/usr/$(TRIPLET-$T)/include
 endif
 endif
 
-CORE_FILES = nooc.c nooctools.c libnooc.c noocpp.c noocgen.c noocdbg.c noocelf.c noocasm.c noocrun.c
+CORE_FILES = nooc.nc nooctools.nc libnooc.nc noocpp.nc noocgen.nc noocdbg.nc noocelf.nc noocasm.nc noocrun.nc
 CORE_FILES += nooc.h config.h libnooc.h nooctok.h
-i386_FILES = $(CORE_FILES) i386-gen.c i386-link.c i386-asm.c i386-asm.h i386-tok.h
-i386-win32_FILES = $(i386_FILES) noocpe.c
-x86_64_FILES = $(CORE_FILES) x86_64-gen.c x86_64-link.c i386-asm.c x86_64-asm.h
-x86_64-win32_FILES = $(x86_64_FILES) noocpe.c
-x86_64-osx_FILES = $(x86_64_FILES) noocmacho.c
-arm_FILES = $(CORE_FILES) arm-gen.c arm-link.c arm-asm.c arm-tok.h
-arm-wince_FILES = $(arm_FILES) noocpe.c
+i386_FILES = $(CORE_FILES) i386-gen.nc i386-link.nc i386-asm.nc i386-asm.h i386-tok.h
+i386-win32_FILES = $(i386_FILES) noocpe.nc
+x86_64_FILES = $(CORE_FILES) x86_64-gen.nc x86_64-link.nc i386-asm.nc x86_64-asm.h
+x86_64-win32_FILES = $(x86_64_FILES) noocpe.nc
+x86_64-osx_FILES = $(x86_64_FILES) noocmacho.nc
+arm_FILES = $(CORE_FILES) arm-gen.nc arm-link.nc arm-asm.nc arm-tok.h
+arm-wince_FILES = $(arm_FILES) noocpe.nc
 arm-eabihf_FILES = $(arm_FILES)
 arm-fpa_FILES     = $(arm_FILES)
 arm-fpa-ld_FILES  = $(arm_FILES)
 arm-vfp_FILES     = $(arm_FILES)
 arm-eabi_FILES    = $(arm_FILES)
 arm-eabihf_FILES  = $(arm_FILES)
-arm64_FILES = $(CORE_FILES) arm64-gen.c arm64-link.c arm64-asm.c
-arm64-osx_FILES = $(arm64_FILES) noocmacho.c
-c67_FILES = $(CORE_FILES) c67-gen.c c67-link.c nooccoff.c
-riscv64_FILES = $(CORE_FILES) riscv64-gen.c riscv64-link.c riscv64-asm.c
+arm64_FILES = $(CORE_FILES) arm64-gen.nc arm64-link.nc arm64-asm.nc
+arm64-osx_FILES = $(arm64_FILES) noocmacho.nc
+c67_FILES = $(CORE_FILES) c67-gen.nc c67-link.nc nooccoff.nc
+riscv64_FILES = $(CORE_FILES) riscv64-gen.nc riscv64-link.nc riscv64-asm.nc
 
 NOOCDEFS_H$(subst yes,,$(CONFIG_predefs)) = noocdefs_.h
 
 # libnooc sources
-LIBNOOC_SRC = $(filter-out nooc.c nooctools.c,$(filter %.c,$($T_FILES)))
+LIBNOOC_SRC = $(filter-out nooc.nc nooctools.nc,$(filter %.nc,$($T_FILES)))
 
 ifeq ($(ONE_SOURCE),yes)
 LIBNOOC_OBJ = $(X)libnooc.o
@@ -240,8 +240,8 @@ NOOC_FILES = $(X)nooc.o
 nooc.o : DEFINES += -DONE_SOURCE=0
 $(X)nooc.o $(X)libnooc.o  : $(NOOCDEFS_H)
 else
-LIBNOOC_OBJ = $(patsubst %.c,$(X)%.o,$(LIBNOOC_SRC))
-LIBNOOC_INC = $(filter %.h %-gen.c %-link.c,$($T_FILES))
+LIBNOOC_OBJ = $(patsubst %.nc,$(X)%.o,$(LIBNOOC_SRC))
+LIBNOOC_INC = $(filter %.h %-gen.nc %-link.nc,$($T_FILES))
 NOOC_FILES = $(X)nooc.o $(LIBNOOC_OBJ)
 $(NOOC_FILES) : DEFINES += -DONE_SOURCE=0
 $(X)noocpp.o : $(NOOCDEFS_H)
@@ -260,15 +260,15 @@ LDFLAGS += -g
 endif
 
 # convert "include/noocdefs.h" to "noocdefs_.h"
-%_.h : include/%.h conftest.c
-	$S$(CC) -DC2STR $(filter %.c,$^) -o c2str.exe && ./c2str.exe $< $@
+%_.h : include/%.h conftest.nc
+	$S$(CC) -DC2STR $(filter %.nc,$^) -o c2str.exe && ./c2str.exe $< $@
 
 # target specific object rule
-$(X)%.o : %.c $(LIBNOOC_INC)
+$(X)%.o : %.nc $(LIBNOOC_INC)
 	$S$(CC) -o $@ -c $< $(DEFINES) $(CFLAGS)
 
 # additional dependencies
-$(X)nooc.o : nooctools.c
+$(X)nooc.o : nooctools.nc
 $(X)nooc.o : DEFINES += $(DEF_GITHASH)
 
 # Host New Object Oriented C
@@ -409,7 +409,7 @@ install-win:
 	$(call IF,$(TOPSRC)/include/*.h $(TOPSRC)/nooclib.h,"$(noocdir)/include")
 	$(call IR,$(TOPSRC)/win32/include,"$(noocdir)/include")
 	$(call IR,$(TOPSRC)/win32/examples,"$(noocdir)/examples")
-	$(call IF,$(TOPSRC)/tests/libnooc_test.c,"$(noocdir)/examples")
+	$(call IF,$(TOPSRC)/tests/libnooc_test.nc,"$(noocdir)/examples")
 	$(call IFw,$(TOPSRC)/libnooc.h libnooc.def,"$(libdir)")
 	$(call IFw,$(TOPSRC)/win32/nooc-win32.txt nooc-doc.html,"$(docdir)")
 ifneq "$(wildcard $(LIBNOOC1_U))" ""
@@ -471,7 +471,7 @@ tcov-tes% : nooc_c$(EXESUF)
 	@rm -f $<.tcov
 	@$(MAKE) --no-print-directory NOOC_LOCAL=$(CURDIR)/$< tes$*
 nooc_c$(EXESUF): $($T_FILES)
-	$S$(NOOC) nooc.c -o $@ -ftest-coverage $(DEFINES)
+	$S$(NOOC) nooc.nc -o $@ -ftest-coverage $(DEFINES)
 
 clean:
 	@rm -f nooc$(EXESUF) nooc_c$(EXESUF) nooc_p$(EXESUF) *-nooc$(EXESUF)
